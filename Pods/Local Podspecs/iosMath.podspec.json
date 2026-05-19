@@ -1,0 +1,70 @@
+{
+  "name": "iosMath",
+  "version": "2.2.0",
+  "summary": "Math equation rendering for iOS and macOS",
+  "description": "iosMath is a library for typesetting math formulas in iOS and macOS using CoreText. It implements the TeX typesetting algorithm on top of OpenType math fonts.",
+  "homepage": "https://github.com/kostub/iosMath",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "MathChat": ""
+  },
+  "source": {
+    "git": "https://github.com/kostub/iosMath.git",
+    "tag": "2.2.0"
+  },
+  "swift_versions": [
+    "5.0"
+  ],
+  "platforms": {
+    "ios": "15.0",
+    "osx": "11.0"
+  },
+  "source_files": [
+    "iosMath/lib/*.{h,m}",
+    "iosMath/render/*.{h,m}",
+    "iosMath/render/internal/*.{h,m}"
+  ],
+  "public_header_files": [
+    "iosMath/render/MTMathUILabel.h",
+    "iosMath/render/MTFont.h",
+    "iosMath/render/MTFontManager.h",
+    "iosMath/render/MTMathListDisplay.h",
+    "iosMath/render/MTConfig.h",
+    "iosMath/lib/MTMathList.h",
+    "iosMath/lib/MTMathAtomFactory.h",
+    "iosMath/lib/MTMathListBuilder.h",
+    "iosMath/lib/MTMathListIndex.h"
+  ],
+  "ios": {
+    "public_header_files": "iosMath/render/UIColor+HexString.h",
+    "exclude_files": [
+      "iosMath/render/NS*.{h,m}",
+      "iosMath/render/MTLabel.{h,m}"
+    ],
+    "frameworks": "UIKit"
+  },
+  "osx": {
+    "public_header_files": [
+      "iosMath/render/NS*.h",
+      "iosMath/render/MTLabel.h"
+    ],
+    "exclude_files": "iosMath/render/UIColor+HexString.{h,m}",
+    "frameworks": "AppKit"
+  },
+  "resource_bundles": {
+    "MTFonts": [
+      "iosMath/fonts/*.otf",
+      "iosMath/fonts/*.plist"
+    ]
+  },
+  "frameworks": [
+    "CoreGraphics",
+    "CoreText",
+    "QuartzCore",
+    "Foundation"
+  ],
+  "swift_version": "5.0"
+}

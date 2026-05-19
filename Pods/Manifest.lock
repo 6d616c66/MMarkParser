@@ -1,0 +1,47 @@
+PODS:
+  - iosMath (2.2.0)
+  - Kingfisher (8.9.0)
+  - libcmark_gfm (0.29.4)
+  - LookinServer/Core (1.2.8)
+  - LookinServer/Swift (1.2.8):
+    - LookinServer/Core
+  - MMarkParser (1.0.0):
+    - iosMath
+    - Kingfisher
+    - libcmark_gfm (~> 0.29.4)
+
+DEPENDENCIES:
+  - iosMath (from `https://github.com/6d616c66/iosMath.git`, branch `master`)
+  - Kingfisher
+  - libcmark_gfm
+  - LookinServer/Swift
+  - MMarkParser (from `.`)
+
+SPEC REPOS:
+  trunk:
+    - Kingfisher
+    - libcmark_gfm
+    - LookinServer
+
+EXTERNAL SOURCES:
+  iosMath:
+    :branch: master
+    :git: https://github.com/6d616c66/iosMath.git
+  MMarkParser:
+    :path: "."
+
+CHECKOUT OPTIONS:
+  iosMath:
+    :commit: ad12ae0ab65d0f139ab62bfa38bf3a668783120a
+    :git: https://github.com/6d616c66/iosMath.git
+
+SPEC CHECKSUMS:
+  iosMath: d440483f5b561a196d3b115cb4078f138ac3e8d6
+  Kingfisher: 90f3a3c2871a71e01d5493c1c196fc2d3ff132cf
+  libcmark_gfm: aed11fc48515bec53902b0fd4cddcbd42b5e94c2
+  LookinServer: 1b2b61c6402ae29fa22182d48f5cd067b4e99e80
+  MMarkParser: da01b8b0cb8461640ed2cfa3dbda5c49b768a8d1
+
+PODFILE CHECKSUM: 5fa1e225f00f9bd145426cc4c69af4c396b47816
+
+COCOAPODS: 1.16.2

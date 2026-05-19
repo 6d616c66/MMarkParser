@@ -1,0 +1,139 @@
+import Foundation
+import CoreGraphics
+import CoreText
+
+/// Loads and registers KaTeX math fonts from the resource bundle.
+/// Supports both SPM (Bundle.module) and CocoaPods (resource bundle) environments.
+@available(iOS 15.0, *)
+public final class MMarkFontLoader {
+
+    public static let shared = MMarkFontLoader()
+
+    private var isRegistered = false
+    private let lock = NSLock()
+
+    /// KaTeX font file names to register (only fonts actually used by default styles)
+    private let fontFileNames: [String] = [
+        "KaTeX_Math-Italic.ttf",
+        "KaTeX_Main-Regular.ttf"
+    ]
+
+    private init() {}
+
+    /// Ensure KaTeX fonts are registered. Safe to call multiple times.
+    public static func ensureFontsRegistered() {
+        shared.registerFonts()
+    }
+
+    /// Register all KaTeX fonts from the resource bundle.
+    public func registerFonts() {
+        lock.lock()
+        defer { lock.unlock() }
+
+        guard !isRegistered else { return }
+
+        guard let resourceBundle = getResourceBundle() else {
+            print("[MMarkFontLoader] Cannot find resource bundle")
+            return
+        }
+
+        var successCount = 0
+        var failedFonts: [String] = []
+
+        for fontName in fontFileNames {
+            if registerFont(named: fontName, in: resourceBundle) {
+                successCount += 1
+            } else {
+                failedFonts.append(fontName)
+            }
+        }
+
+        isRegistered = true
+        print("[MMarkFontLoader] Registered \(successCount)/\(fontFileNames.count) KaTeX fonts")
+
+        if !failedFonts.isEmpty {
+            print("[MMarkFontLoader] Failed fonts: \(failedFonts.joined(separator: ", "))")
+        }
+    }
+
+    /// Get the resource bundle depending on package manager.
+    private func getResourceBundle() -> Bundle? {
+        let bundleName = "MMarkParser"
+
+        #if SWIFT_PACKAGE
+        // SPM: MMarkParser.bundle is inside Bundle.module
+        if let bundleURL = Bundle.module.url(forResource: bundleName, withExtension: "bundle"),
+           let bundle = Bundle(url: bundleURL) {
+            return bundle
+        }
+        // Fallback: use the module bundle directly
+        return Bundle.module
+        #else
+        // CocoaPods: look for MMarkParser resource bundle
+        if let bundleURL = Bundle(for: MMarkFontLoader.self).url(forResource: bundleName, withExtension: "bundle"),
+           let bundle = Bundle(url: bundleURL) {
+            return bundle
+        }
+        // Fallback: use the framework bundle directly
+        return Bundle(for: MMarkFontLoader.self)
+        #endif
+    }
+
+    /// Register a single font file from the bundle.
+    private func registerFont(named fontName: String, in bundle: Bundle) -> Bool {
+        let nameWithoutExtension = (fontName as NSString).deletingPathExtension
+
+        // Try multiple lookup strategies
+        var fontURL: URL?
+
+        // Strategy 1: Look in KaTeXFonts subdirectory (bundle structure)
+        if let url = bundle.url(forResource: nameWithoutExtension, withExtension: "ttf", subdirectory: "KaTeXFonts") {
+            fontURL = url
+        }
+        // Strategy 2: Look in Resources subdirectory (SPM structure)
+        else if let url = bundle.url(forResource: nameWithoutExtension, withExtension: "ttf", subdirectory: "Resources") {
+            fontURL = url
+        }
+        // Strategy 3: Look directly in bundle
+        else if let url = bundle.url(forResource: nameWithoutExtension, withExtension: "ttf") {
+            fontURL = url
+        }
+        // Strategy 4: Look in the bundle's resource path
+        else if let resourcePath = bundle.resourceURL {
+            let url = resourcePath.appendingPathComponent("\(nameWithoutExtension).ttf")
+            if FileManager.default.fileExists(atPath: url.path) {
+                fontURL = url
+            }
+        }
+
+        guard let url = fontURL else {
+            return false
+        }
+
+        return registerFont(from: url, fontName: fontName)
+    }
+
+    /// Register a font from its file URL.
+    private func registerFont(from fontURL: URL, fontName: String) -> Bool {
+        guard let fontDataProvider = CGDataProvider(url: fontURL as CFURL),
+              let font = CGFont(fontDataProvider) else {
+            return false
+        }
+
+        var error: Unmanaged<CFError>?
+        let success = CTFontManagerRegisterGraphicsFont(font, &error)
+
+        if !success {
+            if let error = error?.takeRetainedValue() {
+                let errorDescription = CFErrorCopyDescription(error) as String
+                // Ignore "already registered" errors (harmless)
+                if !errorDescription.contains("already registered") {
+                    print("[MMarkFontLoader] Failed to register \(fontName): \(errorDescription)")
+                }
+            }
+            return false
+        }
+
+        return true
+    }
+}

@@ -1,0 +1,34 @@
+{
+  "name": "MMarkParser",
+  "version": "1.0.0",
+  "summary": "iOS Markdown parser and renderer using TextKit2",
+  "description": "A Markdown parsing and rendering library for iOS with TextKit2 support, GFM complete syntax",
+  "homepage": "https://github.com/example/MMarkParser",
+  "license": "MIT",
+  "authors": {
+    "Author": "author@example.com"
+  },
+  "platforms": {
+    "ios": "15.0"
+  },
+  "source": {
+    "path": "."
+  },
+  "source_files": "Sources/**/*.{swift,h,m}",
+  "resources": [
+    "Sources/Resources/MMarkParser.bundle"
+  ],
+  "swift_versions": "5.7",
+  "frameworks": [
+    "UIKit",
+    "QuartzCore"
+  ],
+  "dependencies": {
+    "libcmark_gfm": [
+      "~> 0.29.4"
+    ],
+    "iosMath": [],
+    "Kingfisher": []
+  },
+  "swift_version": "5.7"
+}

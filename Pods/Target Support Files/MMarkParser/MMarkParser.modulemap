@@ -1,6 +1,0 @@
-framework module MMarkParser {
-  umbrella header "MMarkParser-umbrella.h"
-
-  export *
-  module * { export * }
-}

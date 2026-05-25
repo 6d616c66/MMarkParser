@@ -1,0 +1,23 @@
+name: cocoapod_demo
+options:
+  bundleIdPrefix: com.mmark
+  deploymentTarget:
+    iOS: "15.0"
+
+targets:
+  cocoapod_demo:
+    type: application
+    platform: iOS
+    sources:
+      - cocoapod_demo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mmark.cocoapoddemo
+        SWIFT_VERSION: "5.7"
+        INFOPLIST_FILE: cocoapod_demo/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""

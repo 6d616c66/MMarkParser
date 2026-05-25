@@ -1,0 +1,52 @@
+PODS:
+  - iosMath (2.2.0)
+  - Kingfisher (8.9.0)
+  - LookinServer/Core (1.2.8)
+  - LookinServer/Swift (1.2.8):
+    - LookinServer/Core
+  - md4c/Core (0.5.3)
+  - MMarkParser (1.0.0):
+    - iosMath
+    - Kingfisher
+    - md4c/Core
+
+DEPENDENCIES:
+  - iosMath (from `https://github.com/6d616c66/iosMath.git`, branch `master`)
+  - Kingfisher
+  - LookinServer/Swift
+  - md4c/Core (from `https://github.com/6d616c66/md4c.git`, branch `master`)
+  - MMarkParser (from `../MMarkParser`)
+
+SPEC REPOS:
+  trunk:
+    - Kingfisher
+    - LookinServer
+
+EXTERNAL SOURCES:
+  iosMath:
+    :branch: master
+    :git: https://github.com/6d616c66/iosMath.git
+  md4c:
+    :branch: master
+    :git: https://github.com/6d616c66/md4c.git
+  MMarkParser:
+    :path: "../MMarkParser"
+
+CHECKOUT OPTIONS:
+  iosMath:
+    :commit: ad12ae0ab65d0f139ab62bfa38bf3a668783120a
+    :git: https://github.com/6d616c66/iosMath.git
+  md4c:
+    :commit: c0ec4995d1c148919241995680ac1d9c1583512b
+    :git: https://github.com/6d616c66/md4c.git
+
+SPEC CHECKSUMS:
+  iosMath: d440483f5b561a196d3b115cb4078f138ac3e8d6
+  Kingfisher: 90f3a3c2871a71e01d5493c1c196fc2d3ff132cf
+  LookinServer: 1b2b61c6402ae29fa22182d48f5cd067b4e99e80
+  md4c: 47723b62c5014d75567708925b30ef38a53f4cfe
+  MMarkParser: 3f427e73cefcc9ecb17067106c505a93aed4d339
+
+PODFILE CHECKSUM: efde2cc2adb81282906dbca47f854114c15f0661
+
+COCOAPODS: 1.16.2

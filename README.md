@@ -24,7 +24,7 @@ A Markdown parsing and rendering library for iOS, built on TextKit 2 with full G
 ### CocoaPods
 
 ```ruby
-pod 'MMarkParser', '~> 1.0.0'
+pod 'MMarkParser', :git => 'https://github.com/6d616c66/MMarkParser.git', :tag => '1.0.0'
 ```
 
 MMarkParser depends on:

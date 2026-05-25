@@ -13,6 +13,12 @@ A Markdown parsing and rendering library for iOS, built on TextKit 2 with full G
 - **Fully Customizable** — fonts, colors, spacing for every element via `MMarkStyleConfiguration`
 - **TextKit 2** — modern layout engine, designed for iOS 15+
 
+## Demo
+
+<video src="https://raw.githubusercontent.com/6d616c66/MMarkParser/main/20260525-154102.mp4" controls width="100%"></video>
+
+<video src="https://raw.githubusercontent.com/6d616c66/MMarkParser/main/20260525-164523.mp4" controls width="100%"></video>
+
 ## Requirements
 
 - iOS 15.0+

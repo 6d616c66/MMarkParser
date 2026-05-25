@@ -28,7 +28,7 @@ pod 'MMarkParser', '~> 1.0.0'
 ```
 
 MMarkParser depends on:
-- [md4c](https://github.com/mity/md4c) — Markdown parsing engine
+- [md4c](https://github.com/mity/md4c) — Markdown parsing engine (SAX/callback model)
 - [iosMath](https://github.com/kostub/iosMath) — LaTeX math rendering
 - [Kingfisher](https://github.com/onevcat/Kingfisher) — remote image loading (for `![](url)` images)
 
@@ -82,7 +82,7 @@ See `MMarkStyleConfiguration.swift` for all available options.
 
 | Element | Support |
 |---|---|
-| Headings (H1–H6) | Full |
+| Headings (H1-H6) | Full |
 | Bold, Italic | Full |
 | Strikethrough | GFM |
 | Inline Code | Full |
@@ -102,30 +102,121 @@ See `MMarkStyleConfiguration.swift` for all available options.
 ## Architecture
 
 ```
-Sources/
-├── MMarkParser.swift              # Public API entry point
-├── Parser/
-│   ├── CMarkParser.swift          # Parser configuration & options
-│   └── MMarkParserWrapper.swift   # md4c SAX callback handler
-├── Renderer/
-│   ├── MMarkTextView.swift        # TextKit 2 text view
-│   ├── MMarkStyleConfiguration.swift  # Style definitions
-│   ├── MMarkFontLoader.swift      # KaTeX font registration
-│   └── Attachments/               # Custom NSTextAttachment views
-│       ├── MMarkCodeBlockAttachment/
-│       ├── MMarkImageAttachment/
-│       ├── MMarkTableAttachment/
-│       ├── MMarkMathBlockAttachment/
-│       └── MMarkHorizontalRuleAttachment/
-└── Splash/                        # Syntax highlighting (bundled)
+┌─────────────────────────────────────────────────────────────┐
+│                       Public API                            │
+│                   MMarkParser.swift                         │
+│              parse(markdown:configuration:)                 │
+│                  String.parseMarkdown()                     │
+└────────────┬──────────────────────────────────┬─────────────┘
+             │                                  │
+             ▼                                  ▼
+┌────────────────────────┐    ┌──────────────────────────────┐
+│       Parser           │    │         Renderer             │
+├────────────────────────┤    ├──────────────────────────────┤
+│ CMarkParser.swift      │    │ MMarkTextView.swift          │
+│   Parse options & flags│    │   TextKit 2 display view     │
+│   md4c initialization  │    │   Blockquote bar drawing     │
+│                        │    │   Link tap handling          │
+│ MMarkParserWrapper.swift    │                              │
+│   md4c SAX callbacks   │    │ MMarkStreamTextView.swift    │
+│   enter_block/leave_   │    │   Streaming text support     │
+│     block/enter_span/  │    │                              │
+│     leave_span/text    │    │ MMarkStyleConfiguration.swift│
+│   Attribute stacking   │    │   Full style definitions     │
+│   Table accumulation   │    │                              │
+│   Footnote processing  │    │ MMarkFontLoader.swift        │
+│                        │    │   KaTeX font registration    │
+│                        │    │                              │
+│                        │    │ MMarkTextCommon.swift        │
+│                        │    │   Shared types & helpers     │
+└────────────┬───────────┘    └──────────────┬───────────────┘
+             │                               │
+             │  NSAttributedString            │
+             │  with custom attributes        │
+             │  & NSTextAttachments           │
+             │                               │
+             ▼                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     Attachments                             │
+├─────────────────────────────────────────────────────────────┤
+│ MMarkBaseAttachment/Model     Base classes for all views    │
+│ MMarkCodeBlockAttachment      Syntax-highlighted code       │
+│ MMarkImageAttachment          Remote images (Kingfisher)    │
+│ MMarkTableAttachment          GFM table rendering           │
+│ MMarkMathBlockAttachment      LaTeX math (iosMath)          │
+│ MMarkHorizontalRuleAttachment Horizontal rule separator     │
+│ MMarkListMarkerAttachment     List bullet/number markers    │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-MMarkParser uses [md4c](https://github.com/mity/md4c) with a SAX-style callback model — parsing walks the Markdown AST and incrementally builds an `NSAttributedString` with custom attributes, attachments, and styles.
+### Data Flow
 
-##Referenced
-MMarkParser referenced the implementations of the following two libraries
-https://github.com/zjc19891106/MarkdownDisplayView
-https://github.com/antgroup/FluidMarkdown
+```mermaid
+graph TD
+    A[Markdown String] --> B[MMarkParser.parse]
+    B --> C[CMarkParser: configure md4c flags & options]
+    C --> D[md4c SAX Parser]
+    D --> E{Callbacks}
+    E -->|enter_block| F[_MD4CHandler]
+    E -->|leave_block| F
+    E -->|enter_span| F
+    E -->|leave_span| F
+    E -->|text| F
+    F -->|pushAttrs/popAttrs| G[Attribute Stack]
+    F -->|accumulate| H[Table/Code Buffer]
+    F --> G
+    F --> H
+    G --> I[NSAttributedString]
+    H --> I
+    I --> J[MMarkTextView]
+    J --> K[TextKit 2 Layout]
+    K --> L[Screen]
+```
+
+### Module Overview
+
+```
+MMarkParser/
+├── Sources/
+│   ├── MMarkParser.swift                    # Public API entry point
+│   ├── Parser/
+│   │   ├── CMarkParser.swift                # Parser configuration & md4c options
+│   │   └── MMarkParserWrapper.swift         # md4c SAX callback handler (~1100 lines)
+│   ├── Renderer/
+│   │   ├── MMarkTextView.swift              # TextKit 2 text view with blockquote bars
+│   │   ├── MMarkStreamTextView.swift        # Streaming markdown text view
+│   │   ├── MMarkStyleConfiguration.swift    # Style definitions for all elements
+│   │   ├── MMarkFontLoader.swift            # KaTeX font registration
+│   │   ├── MMarkTextCommon.swift            # Shared types, constants, helpers
+│   │   └── Attachments/
+│   │       ├── MMarkBaseAttachment/         # Base attachment & model classes
+│   │       ├── MMarkCodeBlockAttachment/    # Code block (model + view + provider)
+│   │       ├── MMarkImageAttachment/        # Remote image (Kingfisher integration)
+│   │       ├── MMarkTableAttachment/        # GFM table (model + view + provider)
+│   │       ├── MMarkMathBlockAttachment/    # LaTeX math block (iosMath integration)
+│   │       ├── MMarkHorizontalRuleAttachment/ # Horizontal rule separator
+│   │       └── MMarkListMarkerAttachment/   # List bullet/number rendering
+│   └── Splash/                              # Syntax highlighting (bundled)
+│       ├── Grammar/                         # Language grammars (Swift + generic)
+│       ├── Tokenizing/                      # Lexer & token types
+│       ├── Syntax/                          # Highlighter engine
+│       ├── Output/                          # AttributedString output formatter
+│       └── Theming/                         # Color & font themes
+└── Resources/                               # KaTeX font files (.ttf)
+```
+
+### Key Design Decisions
+
+- **md4c SAX model**: Uses callback-driven parsing (`enter_block`/`leave_block`/`enter_span`/`leave_span`/`text`) instead of AST tree traversal. Incrementally builds `NSAttributedString` during the parse walk.
+- **Attribute stacking**: An attribute stack (`pushAttrs`/`popAttrs`) tracks style context through nested block/inline structures, ensuring correct attribute propagation (e.g., blockquote attributes carry into bold/italic/link children).
+- **TextKit 2 attachments**: Complex elements (code blocks, tables, math, images, horizontal rules, list markers) are rendered as `NSTextAttachment` subclasses with corresponding `NSTextAttachmentViewProvider` classes for lazy view creation.
+- **Blockquote bars**: Drawn via Core Graphics `draw(_:)` override in `MMarkTextView`, using `enumerateTextLayoutFragments` (TextKit 2 API) to determine fragment positions — avoids subview management issues.
+
+## Referenced
+
+MMarkParser referenced the implementations of the following two libraries:
+- [MarkdownDisplayView](https://github.com/zjc19891106/MarkdownDisplayView)
+- [FluidMarkdown](https://github.com/antgroup/FluidMarkdown)
 
 ## License
 

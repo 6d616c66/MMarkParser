@@ -15,9 +15,7 @@ xcuserdata/
 .DS_Store
 **/.DS_Store
 
-# Swift Package Manager
-.swiftpm/xcode/xcuserdata/
-.swiftpm/xcode/package.xcworkspace/xcuserdata/
+
 
 # Xcode Derived Data
 DerivedData/

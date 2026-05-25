@@ -3,7 +3,6 @@ import CoreGraphics
 import CoreText
 
 /// Loads and registers KaTeX math fonts from the resource bundle.
-/// Supports both SPM (Bundle.module) and CocoaPods (resource bundle) environments.
 @available(iOS 15.0, *)
 @MainActor
 public final class MMarkFontLoader {
@@ -57,19 +56,10 @@ public final class MMarkFontLoader {
         }
     }
 
-    /// Get the resource bundle depending on package manager.
+    /// Get the resource bundle.
     private func getResourceBundle() -> Bundle? {
         let bundleName = "MMarkParser"
 
-        #if SWIFT_PACKAGE
-        // SPM: MMarkParser.bundle is inside Bundle.module
-        if let bundleURL = Bundle.module.url(forResource: bundleName, withExtension: "bundle"),
-           let bundle = Bundle(url: bundleURL) {
-            return bundle
-        }
-        // Fallback: use the module bundle directly
-        return Bundle.module
-        #else
         // CocoaPods: look for MMarkParser resource bundle
         if let bundleURL = Bundle(for: MMarkFontLoader.self).url(forResource: bundleName, withExtension: "bundle"),
            let bundle = Bundle(url: bundleURL) {
@@ -77,7 +67,6 @@ public final class MMarkFontLoader {
         }
         // Fallback: use the framework bundle directly
         return Bundle(for: MMarkFontLoader.self)
-        #endif
     }
 
     /// Register a single font file from the bundle.
@@ -91,15 +80,11 @@ public final class MMarkFontLoader {
         if let url = bundle.url(forResource: nameWithoutExtension, withExtension: "ttf", subdirectory: "KaTeXFonts") {
             fontURL = url
         }
-        // Strategy 2: Look in Resources subdirectory (SPM structure)
-        else if let url = bundle.url(forResource: nameWithoutExtension, withExtension: "ttf", subdirectory: "Resources") {
-            fontURL = url
-        }
-        // Strategy 3: Look directly in bundle
+        // Strategy 2: Look directly in bundle
         else if let url = bundle.url(forResource: nameWithoutExtension, withExtension: "ttf") {
             fontURL = url
         }
-        // Strategy 4: Look in the bundle's resource path
+        // Strategy 3: Look in the bundle's resource path
         else if let resourcePath = bundle.resourceURL {
             let url = resourcePath.appendingPathComponent("\(nameWithoutExtension).ttf")
             if FileManager.default.fileExists(atPath: url.path) {

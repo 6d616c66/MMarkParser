@@ -21,18 +21,6 @@ A Markdown parsing and rendering library for iOS, built on TextKit 2 with full G
 
 ## Installation
 
-### Swift Package Manager
-
-Add to your `Package.swift`:
-
-```swift
-dependencies: [
-    .package(url: "https://github.com/<your-org>/MMarkParser.git", from: "1.0.0")
-]
-```
-
-Or in Xcode: File → Add Packages → enter the repo URL.
-
 ### CocoaPods
 
 ```ruby

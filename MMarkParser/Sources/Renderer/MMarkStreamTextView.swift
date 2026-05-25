@@ -204,7 +204,15 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
 
     public func appendStreamContent(_ text: String) {
         guard !text.isEmpty else { return }
-        guard streamState == .streaming || streamState == .paused else { return }
+
+        if streamState == .idle {
+            startStreaming(markdown: text)
+            return
+        }
+
+        guard streamState == .streaming || streamState == .paused || streamState == .stopped else {
+            return
+        }
 
         accumulatedMarkdown += text
 
@@ -215,7 +223,7 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
             guard let attrStr = try? parser.parse(self.accumulatedMarkdown, configuration: self.styleConfiguration) else {
                 return
             }
-            
+
             DispatchQueue.main.async {
                 let duration = CACurrentMediaTime() - startTime
                 if duration > 0.05 {
@@ -225,11 +233,14 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
                 self.fullAttrString = attrStr
 
                 if self.displayIndex >= attrStr.length {
-                    self.pauseStreaming()
                     return
                 }
 
-                if self.streamState == .paused {
+                if self.streamState == .stopped {
+                    self.streamState = .streaming
+                    self.streamDelegate?.didChangeState(.streaming)
+                    self.startTimer()
+                } else if self.streamState == .paused {
                     self.resumeStreaming()
                 }
             }

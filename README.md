@@ -15,9 +15,9 @@ A Markdown parsing and rendering library for iOS, built on TextKit 2 with full G
 
 ## Demo
 
-<video src="https://raw.githubusercontent.com/6d616c66/MMarkParser/main/20260525-154102.mp4" controls width="100%"></video>
+![Demo 1](./20260525-154102.gif)
 
-<video src="https://raw.githubusercontent.com/6d616c66/MMarkParser/main/20260525-164523.mp4" controls width="100%"></video>
+![Demo 2](./20260525-164523.gif)
 
 ## Requirements
 

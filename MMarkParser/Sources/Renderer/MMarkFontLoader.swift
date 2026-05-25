@@ -33,7 +33,6 @@ public final class MMarkFontLoader {
         guard !isRegistered else { return }
 
         guard let resourceBundle = getResourceBundle() else {
-            print("[MMarkFontLoader] Cannot find resource bundle")
             return
         }
 
@@ -49,11 +48,6 @@ public final class MMarkFontLoader {
         }
 
         isRegistered = true
-        print("[MMarkFontLoader] Registered \(successCount)/\(fontFileNames.count) KaTeX fonts")
-
-        if !failedFonts.isEmpty {
-            print("[MMarkFontLoader] Failed fonts: \(failedFonts.joined(separator: ", "))")
-        }
     }
 
     /// Get the resource bundle.
@@ -110,13 +104,6 @@ public final class MMarkFontLoader {
         let success = CTFontManagerRegisterGraphicsFont(font, &error)
 
         if !success {
-            if let error = error?.takeRetainedValue() {
-                let errorDescription = CFErrorCopyDescription(error) as String
-                // Ignore "already registered" errors (harmless)
-                if !errorDescription.contains("already registered") {
-                    print("[MMarkFontLoader] Failed to register \(fontName): \(errorDescription)")
-                }
-            }
             return false
         }
 

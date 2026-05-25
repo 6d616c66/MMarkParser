@@ -11,12 +11,10 @@ public final class MMarkMathBlockViewProvider: NSTextAttachmentViewProvider {
 
     public override func loadView() {
         guard let attachment = self.textAttachment as? MMarkMathBlockAttachment else {
-            print("[MMarkMathBlockViewProvider] Attachment is not MMarkMathBlockAttachment")
             return
         }
 
         let model = attachment.model
-        print("[MMarkMathBlockViewProvider] Creating view for model size: \(model.size), latex: \(model.latex.prefix(40))")
         let view = MMarkMathBlockView(model: model)
 
         self.view = view

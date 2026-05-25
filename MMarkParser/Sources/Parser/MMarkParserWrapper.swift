@@ -49,7 +49,6 @@ private final class _MD4CHandler {
 
     private func popAttrs() {
         guard !attrStack.isEmpty else {
-            print("[MMarkParser] WARNING: attrStack underflow — unbalanced enter/leave callbacks")
             return
         }
         currentAttrs = attrStack.removeLast()
@@ -310,7 +309,6 @@ private final class _MD4CHandler {
         case MD_BLOCK_H:
             pushAttrs()
             guard let detailPtr = detail?.assumingMemoryBound(to: MD_BLOCK_H_DETAIL.self) else {
-                print("[MMarkParser] WARNING: MD_BLOCK_H detail is nil, using default heading style")
                 popAttrs()
                 return
             }
@@ -420,13 +418,11 @@ private final class _MD4CHandler {
 
         case MD_BLOCK_FOOTNOTE_DEF_SECTION:
             pushAttrs()
-            print("[MMarkParser] enterBlock FOOTNOTE_DEF_SECTION — start collecting footnotes")
             isCollectingFootnotes = true
             // 不在这里添加标题，等到有实际脚注定义时再添加
 
         case MD_BLOCK_FOOTNOTE_DEF:
             pushAttrs()
-            print("[MMarkParser] enterBlock FOOTNOTE_DEF")
             isInsideFootnoteDef = true
             
             // 如果这是第一个脚注定义，添加标题和分隔线
@@ -449,8 +445,6 @@ private final class _MD4CHandler {
             if let detailPtr = detail?.assumingMemoryBound(to: MD_BLOCK_FOOTNOTE_DEF_DETAIL.self) {
                 label = extractString(from: detailPtr.pointee.label)
             }
-            
-            print("[MMarkParser] FOOTNOTE_DEF label: \(label)")
             
             // 输出脚注标签，例如 "[1]: "
             let labelAttrs: [NSAttributedString.Key: Any] = [
@@ -517,11 +511,9 @@ private final class _MD4CHandler {
 
         case MD_BLOCK_FOOTNOTE_DEF_SECTION:
             isCollectingFootnotes = false
-            print("[MMarkParser] leaveBlock FOOTNOTE_DEF_SECTION — footnotes collected")
             popAttrs()
 
         case MD_BLOCK_FOOTNOTE_DEF:
-            print("[MMarkParser] leaveBlock FOOTNOTE_DEF, label: \(currentFootnoteDefLabel)")
             isInsideFootnoteDef = false
             // Add ↩ backlink for navigation back to the reference
             if !currentFootnoteDefLabel.isEmpty {
@@ -534,7 +526,6 @@ private final class _MD4CHandler {
             }
             currentFootnoteDefLabel = ""
             footnoteBuffer.append(NSAttributedString(string: "\n"))
-            print("[MMarkParser] footnoteBuffer after FOOTNOTE_DEF: \(footnoteBuffer.string.suffix(100))")
             popAttrs()
             popAttrs()
 
@@ -659,21 +650,14 @@ private final class _MD4CHandler {
             let emTraits = parentFontEM.fontDescriptor.symbolicTraits.union(.traitItalic)
             if let desc = parentFontEM.fontDescriptor.withSymbolicTraits(emTraits) {
                 currentAttrs[.font] = UIFont(descriptor: desc, size: parentFontEM.pointSize)
-                if cellBuffer != nil, let font = currentAttrs[.font] as? UIFont {
-                    print("[MMarkParser] EM in table cell: italic font set: \(font)")
-                }
             } else {
                 currentAttrs[.font] = UIFont.italicSystemFont(ofSize: parentFontEM.pointSize)
-                if cellBuffer != nil, let font = currentAttrs[.font] as? UIFont {
-                    print("[MMarkParser] EM in table cell: italic fallback font: \(font)")
-                }
             }
             if isInsideBlockquote, currentAttrs[.foregroundColor] == nil {
                 currentAttrs[.foregroundColor] = configuration.blockquoteColor
             }
 
         case MD_SPAN_DEL:
-            print("[MMarkParser] enterSpan DEL called")
             pushAttrs()
             currentAttrs[.strikethroughStyle] = NSUnderlineStyle.single.rawValue
             currentAttrs[.strikethroughColor] = configuration.strikethroughColor
@@ -842,11 +826,6 @@ private final class _MD4CHandler {
                 // Accumulate alt text inside image span
                 _imgAltBuffer += str
                 return
-            }
-            if cellBuffer != nil {
-                let fontName = (currentAttrs[.font] as? UIFont)?.fontName ?? "nil"
-                let hasStrike = currentAttrs[.strikethroughStyle] != nil
-                print("[MMarkParser] TABLE TEXT: '\(str)' font=\(fontName) strike=\(hasStrike)")
             }
             let attrStr = NSAttributedString(string: str, attributes: currentAttrs)
             if let cb = cellBuffer { cb.append(attrStr) }
@@ -1205,7 +1184,6 @@ private final class _MD4CHandler {
         let uint8Ptr = UnsafeRawPointer(ptr).assumingMemoryBound(to: UInt8.self)
         let buffer = UnsafeBufferPointer(start: uint8Ptr, count: Int(size))
         guard let string = String(bytes: buffer, encoding: .utf8) else {
-            print("[MMarkParser] WARNING: Failed to decode UTF-8 string from pointer")
             return ""
         }
         return string
@@ -1217,7 +1195,6 @@ private final class _MD4CHandler {
         let uint8Ptr = UnsafeRawPointer(ptr).assumingMemoryBound(to: UInt8.self)
         let buffer = UnsafeBufferPointer(start: uint8Ptr, count: Int(attr.size))
         guard let string = String(bytes: buffer, encoding: .utf8) else {
-            print("[MMarkParser] WARNING: Failed to decode UTF-8 string from MD_ATTRIBUTE")
             return ""
         }
         return string
@@ -1328,7 +1305,6 @@ private let mdEnterBlock: @convention(c) (
     MD_BLOCKTYPE, UnsafeMutableRawPointer?, UnsafeMutableRawPointer?
 ) -> Int32 = { type, detail, userdata in
     guard let userdata = userdata else {
-        print("[MMarkParser] ERROR: mdEnterBlock received nil userdata")
         return -1
     }
     let handler = Unmanaged<_MD4CHandler>.fromOpaque(userdata).takeUnretainedValue()
@@ -1340,7 +1316,6 @@ private let mdLeaveBlock: @convention(c) (
     MD_BLOCKTYPE, UnsafeMutableRawPointer?, UnsafeMutableRawPointer?
 ) -> Int32 = { type, detail, userdata in
     guard let userdata = userdata else {
-        print("[MMarkParser] ERROR: mdLeaveBlock received nil userdata")
         return -1
     }
     let handler = Unmanaged<_MD4CHandler>.fromOpaque(userdata).takeUnretainedValue()
@@ -1352,7 +1327,6 @@ private let mdEnterSpan: @convention(c) (
     MD_SPANTYPE, UnsafeMutableRawPointer?, UnsafeMutableRawPointer?
 ) -> Int32 = { type, detail, userdata in
     guard let userdata = userdata else {
-        print("[MMarkParser] ERROR: mdEnterSpan received nil userdata")
         return -1
     }
     let handler = Unmanaged<_MD4CHandler>.fromOpaque(userdata).takeUnretainedValue()
@@ -1364,7 +1338,6 @@ private let mdLeaveSpan: @convention(c) (
     MD_SPANTYPE, UnsafeMutableRawPointer?, UnsafeMutableRawPointer?
 ) -> Int32 = { type, detail, userdata in
     guard let userdata = userdata else {
-        print("[MMarkParser] ERROR: mdLeaveSpan received nil userdata")
         return -1
     }
     let handler = Unmanaged<_MD4CHandler>.fromOpaque(userdata).takeUnretainedValue()

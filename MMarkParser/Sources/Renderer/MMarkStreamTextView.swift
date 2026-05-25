@@ -178,16 +178,12 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
 
         accumulatedMarkdown = markdown
 
-        let startTime = CACurrentMediaTime()
         parsingQueue.async { [weak self] in
             guard let self = self else { return }
             let parser = CMarkParser()
             let attrStr = (try? parser.parse(markdown, configuration: self.styleConfiguration)) ?? NSAttributedString(string: markdown)
             
             DispatchQueue.main.async {
-                let duration = CACurrentMediaTime() - startTime
-                print("[MMarkStreamTextView] Initial parse took \(String(format: "%.4f", duration))s for \(markdown.count) chars")
-
                 self.fullAttrString = attrStr
                 self.displayIndex = 0
                 self.displayedLength = 0
@@ -216,7 +212,6 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
 
         accumulatedMarkdown += text
 
-        let startTime = CACurrentMediaTime()
         parsingQueue.async { [weak self] in
             guard let self = self else { return }
             let parser = CMarkParser()
@@ -225,11 +220,6 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
             }
 
             DispatchQueue.main.async {
-                let duration = CACurrentMediaTime() - startTime
-                if duration > 0.05 {
-                    print("[MMarkStreamTextView] Warning: incremental parse took \(String(format: "%.4f", duration))s")
-                }
-
                 self.fullAttrString = attrStr
 
                 if self.displayIndex >= attrStr.length {
@@ -327,10 +317,8 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
         guard streamState == .streaming,
               let full = fullAttrString,
               displayIndex < full.length else {
-            print("[MMarkStreamTextView] tick: done. state=\(streamState) displayIndex=\(displayIndex) fullLen=\(fullAttrString?.length ?? -1)")
             DispatchQueue.main.async { [weak self] in
                 guard let self = self, self.streamState == .streaming else { return }
-                print("[MMarkStreamTextView] tick: finishing stream")
                 self.stopTimer()
                 self.streamState = .stopped
                 self.notifySizeChanged()

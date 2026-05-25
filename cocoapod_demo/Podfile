@@ -1,0 +1,19 @@
+platform :ios, '15.0'
+use_frameworks!
+inhibit_all_warnings!
+
+target 'cocoapod_demo' do
+  pod 'MMarkParser', :path => '../MMarkParser'
+  pod 'iosMath', :git => 'https://github.com/6d616c66/iosMath.git', :branch => 'master'
+  pod 'md4c/Core', :git => 'https://github.com/6d616c66/md4c.git', :branch => 'master'
+  pod 'Kingfisher'
+  pod 'LookinServer', :subspecs => ['Swift'], :configurations => ['Debug']
+end
+
+post_install do |installer|
+  # Remove Kingfisher .docc to avoid "already opened from another project" warning
+  docc_path = 'Pods/Kingfisher/Sources/Documentation.docc'
+  if File.directory?(docc_path)
+    FileUtils.rm_rf(docc_path)
+  end
+end

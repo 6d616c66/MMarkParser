@@ -1,0 +1,28 @@
+# Build artifacts
+.build/
+
+# CocoaPods
+Pods/
+
+# Xcode
+*.xcuserdata
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+
+
+# Xcode Derived Data
+DerivedData/
+
+# Bundler
+.bundle/
+vendor/bundle/
+
+# Archives
+*.xcarchive

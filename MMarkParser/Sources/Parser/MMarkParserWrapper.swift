@@ -526,7 +526,7 @@ private final class _MD4CHandler {
             // Add ↩ backlink for navigation back to the reference
             if !currentFootnoteDefLabel.isEmpty {
                 let backlinkStr = NSAttributedString(string: " ↩", attributes: [
-                    .link: "footnote://ref/\(currentFootnoteDefLabel)",
+                    .link: URL(string: "footnote://ref/\(currentFootnoteDefLabel)") as Any,
                     .foregroundColor: configuration.footnoteBackrefColor,
                     .font: configuration.footnoteStyle.font
                 ])
@@ -703,7 +703,7 @@ private final class _MD4CHandler {
             currentAttrs[.font] = parentFont
             currentAttrs[.foregroundColor] = configuration.linkStyle.textColor
             currentAttrs[.underlineStyle] = configuration.linkStyle.underlineStyle.rawValue
-            currentAttrs[.link] = encodedUrl
+            currentAttrs[.link] = URL(string: encodedUrl) as Any
 
         case MD_SPAN_IMG:
             guard let detailPtr = detail?.assumingMemoryBound(to: MD_SPAN_IMG_DETAIL.self) else { return }
@@ -741,7 +741,7 @@ private final class _MD4CHandler {
             currentAttrs[.foregroundColor] = configuration.footnoteReferenceStyle.textColor
             currentAttrs[.backgroundColor] = configuration.footnoteReferenceStyle.backgroundColor
             currentAttrs[.footnoteRef] = refLabel
-            currentAttrs[.link] = "footnote://ref/\(refLabel)"
+            currentAttrs[.link] = URL(string: "footnote://ref/\(refLabel)") as Any
             if isInsideBlockquote {
                 currentAttrs[.blockquote] = true
                 currentAttrs[.blockquoteDepth] = blockquoteDepth

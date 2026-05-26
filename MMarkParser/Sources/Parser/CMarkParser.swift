@@ -52,12 +52,12 @@ public final class CMarkParser: @unchecked Sendable {
     }
 
     /// Parse Markdown to NSAttributedString
-    public func parse(_ markdown: String, configuration: MMarkStyleConfiguration = .defaultStyle) throws -> NSAttributedString {
+    public func parse(_ markdown: String, configuration: MMarkStyleConfiguration = .defaultStyle, containerWidth: CGFloat) throws -> NSAttributedString {
         guard !markdown.isEmpty else {
             return NSAttributedString()
         }
 
-        guard let result = MMarkParserWrapper.markdown(toAttributedString: markdown, options: options.rawValue, configuration: configuration) else {
+        guard let result = MMarkParserWrapper.markdown(toAttributedString: markdown, options: options.rawValue, configuration: configuration, containerWidth: containerWidth) else {
             throw ParseError.parsingFailed
         }
 

@@ -41,7 +41,7 @@ public class MMarkTextView: UITextView, UITextViewDelegate, MMarkTextComponent {
         let parser = CMarkParser()
         let attributedString: NSAttributedString
         do {
-            attributedString = try parser.parse(markdown, configuration: styleConfiguration)
+            attributedString = try parser.parse(markdown, configuration: styleConfiguration, containerWidth: max(44, bounds.width - 32))
         } catch {
             attributedString = NSAttributedString(string: markdown)
         }

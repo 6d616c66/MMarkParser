@@ -178,10 +178,12 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
 
         accumulatedMarkdown = markdown
 
+        let width = max(44, bounds.width - 32)
+        let config = styleConfiguration
         parsingQueue.async { [weak self] in
             guard let self = self else { return }
             let parser = CMarkParser()
-            let attrStr = (try? parser.parse(markdown, configuration: self.styleConfiguration)) ?? NSAttributedString(string: markdown)
+            let attrStr = (try? parser.parse(markdown, configuration: config, containerWidth: width)) ?? NSAttributedString(string: markdown)
 
             DispatchQueue.main.async {
                 self.fullAttrString = attrStr
@@ -212,10 +214,13 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
 
         accumulatedMarkdown += text
 
+        let currentMarkdown = accumulatedMarkdown
+        let width = max(44, bounds.width - 32)
+        let config = styleConfiguration
         parsingQueue.async { [weak self] in
             guard let self = self else { return }
             let parser = CMarkParser()
-            guard let attrStr = try? parser.parse(self.accumulatedMarkdown, configuration: self.styleConfiguration) else {
+            guard let attrStr = try? parser.parse(currentMarkdown, configuration: config, containerWidth: width) else {
                 return
             }
 
@@ -269,7 +274,7 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
         resetStreaming()
 
         let parser = CMarkParser()
-        guard let attrStr = try? parser.parse(markdown, configuration: styleConfiguration) else {
+        guard let attrStr = try? parser.parse(markdown, configuration: styleConfiguration, containerWidth: max(44, bounds.width - 32)) else {
             return
         }
 

@@ -83,9 +83,13 @@ private final class _MD4CHandler {
     var _imgUrlBuffer = ""
 
     // MARK: Footnote Accumulation
-    
+
     var footnoteBuffer = NSMutableAttributedString()
     var isCollectingFootnotes = false
+    var _fallbackFootnoteCounter = 0
+
+    /// Minimum viable container width to prevent negative sizing from deep nesting.
+    private var effectiveWidth: CGFloat { max(44, containerWidth) }
 
     // MARK: Init
 
@@ -376,7 +380,7 @@ private final class _MD4CHandler {
             // HTML blocks are skipped — text is ignored
 
         case MD_BLOCK_HR:
-            let model = MMarkHorizontalRuleModel.create(width: containerWidth, configuration: configuration)
+            let model = MMarkHorizontalRuleModel.create(width: effectiveWidth, configuration: configuration)
             let hrAttachment = MMarkHorizontalRuleAttachment(attachmentType: .horizontalRule, content: model)
             result.append(NSAttributedString(string: "\n"))
             result.append(NSAttributedString(attachment: hrAttachment))
@@ -388,7 +392,7 @@ private final class _MD4CHandler {
                 let d = detailPtr.pointee
                 tableAccum = _MDTableAccumulator(
                     colCount: Int(d.col_count),
-                    containerWidth: containerWidth,
+                    containerWidth: effectiveWidth,
                     configuration: configuration
                 )
             }
@@ -437,7 +441,7 @@ private final class _MD4CHandler {
             
             // 如果这是第一个脚注定义，添加标题和分隔线
             if footnoteBuffer.length == 0 {
-                let model = MMarkHorizontalRuleModel.create(width: containerWidth, configuration: configuration)
+                let model = MMarkHorizontalRuleModel.create(width: effectiveWidth, configuration: configuration)
                 let hrAttachment = MMarkHorizontalRuleAttachment(attachmentType: .horizontalRule, content: model)
                 footnoteBuffer.append(NSAttributedString(string: "\n"))
                 footnoteBuffer.append(NSAttributedString(attachment: hrAttachment))
@@ -454,6 +458,10 @@ private final class _MD4CHandler {
             var label = ""
             if let detailPtr = detail?.assumingMemoryBound(to: MD_BLOCK_FOOTNOTE_DEF_DETAIL.self) {
                 label = extractString(from: detailPtr.pointee.label)
+            }
+            if label.isEmpty {
+                _fallbackFootnoteCounter += 1
+                label = "\(_fallbackFootnoteCounter)"
             }
             
             // 输出脚注标签，例如 "[1]: "
@@ -537,7 +545,6 @@ private final class _MD4CHandler {
             currentFootnoteDefLabel = ""
             footnoteBuffer.append(NSAttributedString(string: "\n"))
             popAttrs()
-            popAttrs()
 
         case MD_BLOCK_P:
             // 在脚注定义中，段落结束不添加额外换行
@@ -552,7 +559,7 @@ private final class _MD4CHandler {
                 let lang = codeBlockLang.trimmingCharacters(in: .whitespacesAndNewlines)
                 let language = lang.isEmpty ? nil : lang
 
-                let model = MMarkCodeBlockModel.create(language: language, code: trimmed, width: containerWidth, configuration: configuration)
+                let model = MMarkCodeBlockModel.create(language: language, code: trimmed, width: effectiveWidth, configuration: configuration)
                 let attachment = MMarkCodeBlockAttachment(attachmentType: .codeBlock, content: model)
                 let attrStr = NSMutableAttributedString(attachment: attachment)
 
@@ -585,7 +592,7 @@ private final class _MD4CHandler {
                     headerCells: accum.headerCells,
                     dataRows: accum.bodyCells,
                     alignments: accum.alignments,
-                    width: containerWidth,
+                    width: effectiveWidth,
                     configuration: configuration
                 )
                 let attachment = MMarkTableAttachment(attachmentType: .table, content: model)
@@ -773,7 +780,7 @@ private final class _MD4CHandler {
                 cellBuffer?.append(attrStr)
             } else {
                 // Normal text: render image attachment
-                let model = MMarkImageModel.create(url: url, alt: alt, width: containerWidth, placeholderColor: configuration.imagePlaceholderColor)
+                let model = MMarkImageModel.create(url: url, alt: alt, width: effectiveWidth, placeholderColor: configuration.imagePlaceholderColor)
                 let attachment = MMarkImageAttachment(attachmentType: .image, content: model)
                 let attrStr = NSMutableAttributedString(attachment: attachment)
                 // Ensure image is on its own line to avoid TextKit 2 inline
@@ -902,7 +909,7 @@ private final class _MD4CHandler {
 
     private func renderBlockMath(_ latex: String) {
         let convertedLatex = convertChemistryToLatex(latex)
-        let model = MMarkMathBlockModel.create(latex: convertedLatex, width: containerWidth, configuration: configuration)
+        let model = MMarkMathBlockModel.create(latex: convertedLatex, width: effectiveWidth, configuration: configuration)
         let attachment = MMarkMathBlockAttachment(attachmentType: .mathBlock, content: model)
         let attrStr = NSMutableAttributedString(attachment: attachment)
 
@@ -1382,7 +1389,7 @@ public final class MMarkParserWrapper {
     public static func markdown(toAttributedString markdown: String,
                                options: UInt32,
                                configuration: MMarkStyleConfiguration = .defaultStyle,
-                               containerWidth: CGFloat = UIScreen.main.bounds.width - 32) -> NSAttributedString? {
+                               containerWidth: CGFloat) -> NSAttributedString? {
         _ = initializeOnce
 
         guard !markdown.isEmpty else {

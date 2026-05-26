@@ -1376,8 +1376,11 @@ private let mdText: @convention(c) (
 public final class MMarkParserWrapper {
 
     nonisolated(unsafe) private static var lastErrorMessage: String = ""
+    private static let _errorLock = NSLock()
 
     public static var lastError: String {
+        _errorLock.lock()
+        defer { _errorLock.unlock() }
         return lastErrorMessage
     }
 
@@ -1393,7 +1396,9 @@ public final class MMarkParserWrapper {
         _ = initializeOnce
 
         guard !markdown.isEmpty else {
+            _errorLock.lock()
             lastErrorMessage = ""
+            _errorLock.unlock()
             return NSAttributedString()
         }
 
@@ -1420,11 +1425,15 @@ public final class MMarkParserWrapper {
         }
 
         guard parseResult == 0 else {
+            _errorLock.lock()
             lastErrorMessage = "md4c parsing failed with code \(parseResult)"
+            _errorLock.unlock()
             return nil
         }
 
+        _errorLock.lock()
         lastErrorMessage = ""
+        _errorLock.unlock()
         
         // Append collected footnotes to the end of the document
         if handler.footnoteBuffer.length > 0 {

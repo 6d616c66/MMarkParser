@@ -3,6 +3,9 @@ import UIKit
 extension DispatchQueue {
     /// 确保在主线程执行闭包。如果在主线程则直接执行，否则同步派发到主线程。
     /// 适用于需要从后台解析线程同步获取 UI 尺寸或渲染图片的场景。
+    /// - Warning: Calling this from a background thread while the main thread is blocked
+    ///   waiting on the same background thread will deadlock. Only use where the calling
+    ///   thread has no dependency chain back to main.
     static func mainSyncSafe<T>(_ block: () -> T) -> T {
         if Thread.isMainThread {
             return block()

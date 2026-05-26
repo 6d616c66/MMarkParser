@@ -6,8 +6,10 @@ import UIKit
 public final class MMarkHorizontalRuleAttachment: MMarkBaseAttachment {
 
     var model: MMarkHorizontalRuleModel {
-        return (contentModel as? MMarkHorizontalRuleModel) ?? (MMarkHorizontalRuleModel.create(width: UIScreen.main.bounds.width - 32))
+        return (contentModel as? MMarkHorizontalRuleModel) ?? _fallbackModel
     }
+    // Conservative default width avoids UIScreen.main access from off-main-thread TextKit 2 layout.
+    private let _fallbackModel = MMarkHorizontalRuleModel.create(width: 320)
 
     public var ruleHeight: CGFloat { model.ruleConfig.ruleHeight }
     public var ruleColor: UIColor { model.ruleConfig.ruleColor }

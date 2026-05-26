@@ -319,36 +319,33 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
     }
 
     private func onTimerTick() {
-        guard streamState == .streaming,
-              let full = fullAttrString,
-              displayIndex < full.length else {
-            DispatchQueue.main.async { [weak self] in
-                guard let self = self, self.streamState == .streaming else { return }
-                self.stopTimer()
-                self.streamState = .stopped
-                self.notifySizeChanged()
-                self.streamDelegate?.didChangeState(.stopped)
-                self.streamDelegate?.didFinishStreaming()
-            }
-            return
-        }
-
-        // 性能优化：对于非常长的文档，自动增加 chunk 大小以维持视觉上的流式感
-        let dynamicChunkSize = displayIndex > 5000 ? max(chunkSize, 15) : chunkSize
-        let newIndex = min(displayIndex + dynamicChunkSize, full.length)
-        guard newIndex > displayIndex else { return }
-
-        displayIndex = newIndex
-
+        // All state access is dispatched to @MainActor to prevent data races
+        // on streamState, fullAttrString, and displayIndex.
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
 
+            guard self.streamState == .streaming,
+                  let full = self.fullAttrString,
+                  self.displayIndex < full.length else {
+                if self.streamState == .streaming {
+                    self.stopTimer()
+                    self.streamState = .stopped
+                    self.notifySizeChanged()
+                    self.streamDelegate?.didChangeState(.stopped)
+                    self.streamDelegate?.didFinishStreaming()
+                }
+                return
+            }
+
+            // 性能优化：对于非常长的文档，自动增加 chunk 大小以维持视觉上的流式感
+            let dynamicChunkSize = self.displayIndex > 5000 ? max(self.chunkSize, 15) : self.chunkSize
+            let newIndex = min(self.displayIndex + dynamicChunkSize, full.length)
+            guard newIndex > self.displayIndex else { return }
+
+            self.displayIndex = newIndex
             self.updateStreamContent(to: self.displayIndex)
-            // 先通知外部尺寸变化，让宿主视图（如 TableViewCell）先调整好 frame
             self.notifySizeChanged()
-            // 更新内部装饰
             self.updateBlockquoteBars()
-            // 最后根据稳定的 frame 执行滚动
             self.checkAndAutoScroll()
         }
     }
@@ -384,10 +381,9 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
     // MARK: - Deinit
 
     deinit {
-        let timer = self.timer
-        timerQueue.async {
-            timer?.cancel()
-        }
+        // cancel() is thread-safe — call directly to avoid racing with handler during deallocation
+        timer?.cancel()
+        timer = nil
     }
 }
 

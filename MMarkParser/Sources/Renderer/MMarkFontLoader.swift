@@ -3,6 +3,7 @@ import CoreGraphics
 import CoreText
 
 /// Loads and registers KaTeX math fonts from the resource bundle.
+/// Thread-safe: NSLock protects isRegistered flag.
 @available(iOS 15.0, *)
 public final class MMarkFontLoader: @unchecked Sendable {
 

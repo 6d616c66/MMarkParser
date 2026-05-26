@@ -2,6 +2,7 @@ import Foundation
 import UIKit
 
 /// Markdown parser powered by md4c's SAX-style callback API.
+/// Safe: stateless — all mutable state lives in stack-local _MD4CHandler created per-parse.
 @available(iOS 15.0, *)
 public final class CMarkParser: @unchecked Sendable {
     public enum ParseError: Error {

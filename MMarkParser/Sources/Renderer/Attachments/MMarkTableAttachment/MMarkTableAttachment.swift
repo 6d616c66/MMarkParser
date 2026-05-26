@@ -15,7 +15,6 @@ public final class MMarkTableAttachment: MMarkBaseAttachment {
     public var dataRows: [[NSAttributedString]] { model.dataRows }
     public var alignments: [NSTextAlignment] { model.alignments }
 
-
     public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
         let width = max(44, min(model.size.width, lineFrag.width) - 1)
         return CGRect(origin: .zero, size: CGSize(width: width, height: model.size.height))

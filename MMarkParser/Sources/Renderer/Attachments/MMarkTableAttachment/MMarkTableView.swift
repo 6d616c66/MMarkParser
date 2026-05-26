@@ -173,13 +173,28 @@ extension MMarkTableView: UICollectionViewDataSource, UICollectionViewDelegate {
         let isLastColumn = indexPath.item == headerCells.count - 1
         let isLastRow = indexPath.section == collectionView.numberOfSections - 1
         if isHeader {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MMarkTableHeaderCell.reuseIdentifier, for: indexPath) as! MMarkTableHeaderCell
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: MMarkTableHeaderCell.reuseIdentifier, for: indexPath
+            ) as? MMarkTableHeaderCell else {
+                return UICollectionViewCell()
+            }
             cell.configure(attributedText: headerCells[indexPath.item], config: config, columnWidth: colWidth, alignment: alignment, isLastColumn: isLastColumn, isLastRow: isLastRow)
             return cell
         } else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MMarkTableCell.reuseIdentifier, for: indexPath) as! MMarkTableCell
+            guard let cell = collectionView.dequeueReusableCell(
+                withReuseIdentifier: MMarkTableCell.reuseIdentifier, for: indexPath
+            ) as? MMarkTableCell else {
+                return UICollectionViewCell()
+            }
             let isAlternate = config.alternatingRowColors && indexPath.section % 2 == 0
-            cell.configure(attributedText: dataRows[indexPath.section - 1][indexPath.item], config: config, columnWidth: colWidth, backgroundColor: isAlternate ? config.rowBackgroundColor.withAlphaComponent(0.5) : config.rowBackgroundColor, alignment: alignment, isLastColumn: isLastColumn, isLastRow: isLastRow)
+            let bgColor = isAlternate
+                ? config.rowBackgroundColor.withAlphaComponent(0.5)
+                : config.rowBackgroundColor
+            cell.configure(attributedText: dataRows[indexPath.section - 1][indexPath.item],
+                           config: config, columnWidth: colWidth,
+                           backgroundColor: bgColor,
+                           alignment: alignment,
+                           isLastColumn: isLastColumn, isLastRow: isLastRow)
             return cell
         }
     }
@@ -209,7 +224,10 @@ public final class MMarkTableCell: UICollectionViewCell {
         contentView.addSubview(bottomSeparator)
     }
     required init?(coder: NSCoder) { fatalError() }
-    public func configure(attributedText: NSAttributedString, config: MMarkTableView.MMarkTableConfig, columnWidth: CGFloat, backgroundColor: UIColor, alignment: NSTextAlignment = .left, isLastColumn: Bool = false, isLastRow: Bool = false) {
+    public func configure(attributedText: NSAttributedString, config: MMarkTableView.MMarkTableConfig,
+                           columnWidth: CGFloat, backgroundColor: UIColor,
+                           alignment: NSTextAlignment = .left,
+                           isLastColumn: Bool = false, isLastRow: Bool = false) {
         let padding = config.cellPadding
         let textWidth = max(0, columnWidth - padding * 2)
         textView.attributedText = attributedText
@@ -254,7 +272,9 @@ public final class MMarkTableHeaderCell: UICollectionViewCell {
         contentView.addSubview(bottomSeparator)
     }
     required init?(coder: NSCoder) { fatalError() }
-    public func configure(attributedText: NSAttributedString, config: MMarkTableView.MMarkTableConfig, columnWidth: CGFloat, alignment: NSTextAlignment = .left, isLastColumn: Bool = false, isLastRow: Bool = false) {
+    public func configure(attributedText: NSAttributedString, config: MMarkTableView.MMarkTableConfig,
+                           columnWidth: CGFloat, alignment: NSTextAlignment = .left,
+                           isLastColumn: Bool = false, isLastRow: Bool = false) {
         let padding = config.cellPadding
         let textWidth = max(0, columnWidth - padding * 2)
         textView.attributedText = attributedText

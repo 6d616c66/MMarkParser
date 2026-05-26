@@ -96,6 +96,16 @@ private final class _MD4CHandler {
 
     // MARK: Output Helpers
 
+    /// Measure the width of an attributed string.
+    private func measureWidth(of attrStr: NSAttributedString) -> CGFloat {
+        let size = CGSize(width: CGFloat.greatestFiniteMagnitude,
+                          height: CGFloat.greatestFiniteMagnitude)
+        let rect = attrStr.boundingRect(with: size,
+                                         options: [.usesLineFragmentOrigin, .usesFontLeading],
+                                         context: nil)
+        return ceil(rect.width)
+    }
+
     /// Append attributed string to the current output context.
     /// Redirects to cell buffer if inside a table cell, footnote buffer if collecting footnotes, otherwise appends to result.
     private func output(_ attrString: NSAttributedString) {
@@ -208,7 +218,7 @@ private final class _MD4CHandler {
                 case .character:
                     let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
                     markerAttrStr = str
-                    measuredWidth = ceil(str.boundingRect(with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).width)
+                    measuredWidth = measureWidth(of: str)
                 case .image:
                     if let img = style.image {
                         let markerSize = style.imageSize
@@ -222,7 +232,7 @@ private final class _MD4CHandler {
                     } else {
                         let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
                         markerAttrStr = str
-                        measuredWidth = ceil(str.boundingRect(with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).width)
+                        measuredWidth = measureWidth(of: str)
                     }
                 }
             } else if isTask {
@@ -234,7 +244,7 @@ private final class _MD4CHandler {
                 case .character:
                     let str = NSAttributedString(string: marker + " ", attributes: [.font: markerFont, .foregroundColor: markerColor])
                     markerAttrStr = str
-                    measuredWidth = ceil(str.boundingRect(with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).width)
+                    measuredWidth = measureWidth(of: str)
                 case .image:
                     let img = isChecked ? style.checkedImage : style.uncheckedImage
                     if let img = img {
@@ -249,7 +259,7 @@ private final class _MD4CHandler {
                     } else {
                         let str = NSAttributedString(string: marker + " ", attributes: [.font: markerFont, .foregroundColor: markerColor])
                         markerAttrStr = str
-                        measuredWidth = ceil(str.boundingRect(with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).width)
+                        measuredWidth = measureWidth(of: str)
                     }
                 }
             } else {
@@ -258,7 +268,7 @@ private final class _MD4CHandler {
                 case .character:
                     let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
                     markerAttrStr = str
-                    measuredWidth = ceil(str.boundingRect(with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).width)
+                    measuredWidth = measureWidth(of: str)
                 case .image:
                     let ulImg = (clampedDepth == 1) ? (style.image ?? style.secondaryImage) : (style.secondaryImage ?? style.image)
                     if let img = ulImg {
@@ -273,7 +283,7 @@ private final class _MD4CHandler {
                     } else {
                         let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
                         markerAttrStr = str
-                        measuredWidth = ceil(str.boundingRect(with: CGSize(width: CGFloat.greatestFiniteMagnitude, height: CGFloat.greatestFiniteMagnitude), options: [.usesLineFragmentOrigin, .usesFontLeading], context: nil).width)
+                        measuredWidth = measureWidth(of: str)
                     }
                 }
             }

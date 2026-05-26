@@ -112,7 +112,7 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
     /// 采用增量方式更新流式内容，避免 TextKit 2 全量重布局。
     private func updateStreamContent(to newIndex: Int) {
         guard let full = fullAttrString, newIndex <= full.length else { return }
-        
+
         let currentLength = displayedLength
         guard newIndex > currentLength else {
             // 如果新索引变小了（通常是内容重置），则执行全量替换
@@ -134,7 +134,7 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
             textStorage.append(deltaString)
             textStorage.endEditing()
         }
-        
+
         displayedLength = newIndex
     }
 
@@ -182,7 +182,7 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
             guard let self = self else { return }
             let parser = CMarkParser()
             let attrStr = (try? parser.parse(markdown, configuration: self.styleConfiguration)) ?? NSAttributedString(string: markdown)
-            
+
             DispatchQueue.main.async {
                 self.fullAttrString = attrStr
                 self.displayIndex = 0

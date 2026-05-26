@@ -171,7 +171,9 @@ public struct MMarkStyleConfiguration {
         /// 图标展示尺寸
         public var imageSize: CGSize
 
-        public init(mode: ListMarkerMode = .character, checkedColor: UIColor, uncheckedColor: UIColor, checkedFont: UIFont, uncheckedFont: UIFont, checkedImage: UIImage? = nil, uncheckedImage: UIImage? = nil, imageSize: CGSize = CGSize(width: 8, height: 8)) {
+        public init(mode: ListMarkerMode = .character, checkedColor: UIColor, uncheckedColor: UIColor,
+                    checkedFont: UIFont, uncheckedFont: UIFont, checkedImage: UIImage? = nil,
+                    uncheckedImage: UIImage? = nil, imageSize: CGSize = CGSize(width: 8, height: 8)) {
             self.mode = mode
             self.checkedColor = checkedColor
             self.uncheckedColor = uncheckedColor

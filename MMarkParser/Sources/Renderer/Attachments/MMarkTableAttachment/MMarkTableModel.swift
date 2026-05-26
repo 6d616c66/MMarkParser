@@ -11,7 +11,10 @@ public class MMarkTableModel: MMarkBaseModel {
     public let alignments: [NSTextAlignment]
     public let tableConfig: MMarkTableView.MMarkTableConfig
 
-    public init(size: CGSize, columnWidths: [CGFloat], rowHeights: [CGFloat], headerCells: [NSAttributedString], dataRows: [[NSAttributedString]], alignments: [NSTextAlignment] = [], tableConfig: MMarkTableView.MMarkTableConfig = .init()) {
+    public init(size: CGSize, columnWidths: [CGFloat], rowHeights: [CGFloat],
+                headerCells: [NSAttributedString], dataRows: [[NSAttributedString]],
+                alignments: [NSTextAlignment] = [],
+                tableConfig: MMarkTableView.MMarkTableConfig = .init()) {
         self.columnWidths = columnWidths
         self.rowHeights = rowHeights
         self.headerCells = headerCells
@@ -22,7 +25,9 @@ public class MMarkTableModel: MMarkBaseModel {
     }
 
     /// 工厂方法：根据 headerCells、dataRows、containerWidth 计算 size 并创建模型
-    public static func create(headerCells: [NSAttributedString], dataRows: [[NSAttributedString]], alignments: [NSTextAlignment] = [], width: CGFloat, configuration: MMarkStyleConfiguration = .defaultStyle) -> MMarkTableModel {
+    public static func create(headerCells: [NSAttributedString], dataRows: [[NSAttributedString]],
+                               alignments: [NSTextAlignment] = [], width: CGFloat,
+                               configuration: MMarkStyleConfiguration = .defaultStyle) -> MMarkTableModel {
         var config = MMarkTableView.MMarkTableConfig()
         config.headerBackgroundColor = configuration.tableStyle.headerBackgroundColor
         config.separatorColor = configuration.tableStyle.borderColor

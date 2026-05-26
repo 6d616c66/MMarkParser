@@ -4,14 +4,14 @@ import UIKit
 /// NSTextAttachment that renders a horizontal rule (thematic break)
 @available(iOS 15.0, *)
 public final class MMarkHorizontalRuleAttachment: MMarkBaseAttachment {
-    
+
     var model: MMarkHorizontalRuleModel {
         return (contentModel as? MMarkHorizontalRuleModel) ?? (MMarkHorizontalRuleModel.create(width: UIScreen.main.bounds.width - 32))
     }
 
     public var ruleHeight: CGFloat { model.ruleConfig.ruleHeight }
     public var ruleColor: UIColor { model.ruleConfig.ruleColor }
-    
+
     public override init(attachmentType: MMarkAttachmentType, content: MMarkBaseModel) {
         super.init(attachmentType: attachmentType, content: content)
         self.allowsTextAttachmentView = true

@@ -136,7 +136,7 @@ public final class MMarkCodeBlockView: UIView {
             codeTextView.topAnchor.constraint(equalTo: codeScrollView.contentLayoutGuide.topAnchor),
             codeTextView.leadingAnchor.constraint(equalTo: codeScrollView.contentLayoutGuide.leadingAnchor),
             codeTextView.bottomAnchor.constraint(equalTo: codeScrollView.contentLayoutGuide.bottomAnchor),
-            codeTextView.trailingAnchor.constraint(equalTo: codeScrollView.contentLayoutGuide.trailingAnchor),
+            codeTextView.trailingAnchor.constraint(equalTo: codeScrollView.contentLayoutGuide.trailingAnchor)
         ])
 
         // Code text width constraint - set from model's codeTextWidth

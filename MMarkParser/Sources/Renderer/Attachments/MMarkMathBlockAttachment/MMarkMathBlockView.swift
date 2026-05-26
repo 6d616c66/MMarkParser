@@ -88,7 +88,7 @@ public final class MMarkMathBlockView: UIView {
             latexScrollView.topAnchor.constraint(equalTo: topAnchor, constant: padding),
             latexScrollView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
             latexScrollView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
-            latexScrollView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding),
+            latexScrollView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding)
         ])
     }
 

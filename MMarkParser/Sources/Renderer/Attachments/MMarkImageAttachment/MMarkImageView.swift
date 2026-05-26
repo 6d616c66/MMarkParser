@@ -62,7 +62,7 @@ public final class MMarkImageView: UIView {
             imageView.bottomAnchor.constraint(equalTo: bottomAnchor),
 
             activityIndicator.centerXAnchor.constraint(equalTo: centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
 

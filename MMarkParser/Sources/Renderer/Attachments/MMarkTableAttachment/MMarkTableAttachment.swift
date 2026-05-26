@@ -5,7 +5,10 @@ import UIKit
 public final class MMarkTableAttachment: MMarkBaseAttachment {
 
     var model: MMarkTableModel {
-        return contentModel as! MMarkTableModel
+        guard let model = contentModel as? MMarkTableModel else {
+            fatalError("MMarkTableAttachment contentModel is not MMarkTableModel")
+        }
+        return model
     }
 
     public var headerCells: [NSAttributedString] { model.headerCells }
@@ -14,7 +17,7 @@ public final class MMarkTableAttachment: MMarkBaseAttachment {
 
 
     public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
-        let width = min(model.size.width, max(lineFrag.width, 44))
+        let width = max(44, min(model.size.width, lineFrag.width) - 1)
         return CGRect(origin: .zero, size: CGSize(width: width, height: model.size.height))
     }
 }

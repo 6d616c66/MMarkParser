@@ -13,17 +13,14 @@ public enum MMarkParser {
     ///   - markdown: The Markdown source text.
     ///   - configuration: Style configuration; defaults to `.defaultStyle`.
     /// - Returns: A fully styled NSAttributedString ready for display.
-    @MainActor @available(iOS 15.0, *)
+    /// - Throws: ParseError if parsing fails.
+    @available(iOS 15.0, *)
     public static func parse(
         markdown: String,
         configuration: MMarkStyleConfiguration = .defaultStyle
-    ) -> NSAttributedString {
+    ) throws -> NSAttributedString {
         let parser = CMarkParser()
-        do {
-            return try parser.parse(markdown, configuration: configuration)
-        } catch {
-            return NSAttributedString(string: markdown)
-        }
+        return try parser.parse(markdown, configuration: configuration)
     }
 }
 
@@ -32,9 +29,10 @@ public enum MMarkParser {
 @available(iOS 15.0, *)
 public extension String {
     /// Parse the receiver as Markdown and return an NSAttributedString.
-    @MainActor func parseMarkdown(
+    func parseMarkdown(
         configuration: MMarkStyleConfiguration = .defaultStyle
     ) -> NSAttributedString {
-        return MMarkParser.parse(markdown: self, configuration: configuration)
+        return (try? MMarkParser.parse(markdown: self, configuration: configuration))
+            ?? NSAttributedString(string: self)
     }
 }

@@ -4,8 +4,7 @@ import CoreText
 
 /// Loads and registers KaTeX math fonts from the resource bundle.
 @available(iOS 15.0, *)
-@MainActor
-public final class MMarkFontLoader {
+public final class MMarkFontLoader: @unchecked Sendable {
 
     public static let shared = MMarkFontLoader()
 

@@ -1265,8 +1265,6 @@ private final class _MDTableAccumulator {
     var currentRow: [NSAttributedString] = []
     var currentCellText: NSMutableAttributedString?
 
-    private var textBuffer = NSMutableAttributedString()
-
     init(colCount: Int, containerWidth: CGFloat, configuration: MMarkStyleConfiguration) {
         self.colCount = colCount
         self.containerWidth = containerWidth
@@ -1358,7 +1356,6 @@ private let mdText: @convention(c) (
 
 /// Swift wrapper for md4c - SAX callback driven markdown to NSAttributedString conversion.
 @available(iOS 15.0, *)
-@MainActor
 public final class MMarkParserWrapper {
 
     nonisolated(unsafe) private static var lastErrorMessage: String = ""
@@ -1379,20 +1376,15 @@ public final class MMarkParserWrapper {
         _ = initializeOnce
 
         guard !markdown.isEmpty else {
-            lastErrorMessage = "Input markdown is empty"
+            lastErrorMessage = ""
             return NSAttributedString()
         }
 
         let handler = _MD4CHandler(configuration: configuration, containerWidth: containerWidth)
 
-        // Build md4c flags: default GFM flags + user options
-        var flags = options
-        // Always enable permissive autolinks for GFM compatibility
-        // (already included in default .gfm options)
-
         var parser = MD_PARSER(
             abi_version: 0,
-            flags: flags,
+            flags: options,
             enter_block: mdEnterBlock,
             leave_block: mdLeaveBlock,
             enter_span: mdEnterSpan,

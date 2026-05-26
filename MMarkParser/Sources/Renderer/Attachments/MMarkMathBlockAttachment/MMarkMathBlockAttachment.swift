@@ -5,7 +5,10 @@ import UIKit
 public final class MMarkMathBlockAttachment: MMarkBaseAttachment {
 
     public var model: MMarkMathBlockModel {
-        return contentModel as! MMarkMathBlockModel
+        guard let model = contentModel as? MMarkMathBlockModel else {
+            fatalError("MMarkMathBlockAttachment contentModel is not MMarkMathBlockModel")
+        }
+        return model
     }
 
     public var latex: String { model.latex }

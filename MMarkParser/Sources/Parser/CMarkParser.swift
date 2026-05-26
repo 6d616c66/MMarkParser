@@ -3,7 +3,7 @@ import UIKit
 
 /// Markdown parser powered by md4c's SAX-style callback API.
 @available(iOS 15.0, *)
-public final class CMarkParser {
+public final class CMarkParser: @unchecked Sendable {
     public enum ParseError: Error {
         case invalidInput
         case parsingFailed
@@ -52,7 +52,7 @@ public final class CMarkParser {
     }
 
     /// Parse Markdown to NSAttributedString
-    @MainActor public func parse(_ markdown: String, configuration: MMarkStyleConfiguration = .defaultStyle) throws -> NSAttributedString {
+    public func parse(_ markdown: String, configuration: MMarkStyleConfiguration = .defaultStyle) throws -> NSAttributedString {
         guard !markdown.isEmpty else {
             return NSAttributedString()
         }

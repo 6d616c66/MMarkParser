@@ -6,7 +6,10 @@ import UIKit
 public final class MMarkCodeBlockAttachment: MMarkBaseAttachment {
 
     public var model: MMarkCodeBlockModel {
-        return (contentModel as! MMarkCodeBlockModel)
+        guard let model = contentModel as? MMarkCodeBlockModel else {
+            fatalError("MMarkCodeBlockAttachment contentModel is not MMarkCodeBlockModel")
+        }
+        return model
     }
 
     public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {

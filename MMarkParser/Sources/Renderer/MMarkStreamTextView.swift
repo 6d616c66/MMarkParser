@@ -379,8 +379,9 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
     // MARK: - Deinit
 
     deinit {
-        MainActor.assumeIsolated {
-            stopTimer()
+        let timer = self.timer
+        timerQueue.async {
+            timer?.cancel()
         }
     }
 }

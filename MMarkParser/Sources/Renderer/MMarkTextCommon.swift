@@ -3,7 +3,7 @@ import UIKit
 extension DispatchQueue {
     /// 确保在主线程执行闭包。如果在主线程则直接执行，否则同步派发到主线程。
     /// 适用于需要从后台解析线程同步获取 UI 尺寸或渲染图片的场景。
-    public static func mainSyncSafe<T>(_ block: () -> T) -> T {
+    static func mainSyncSafe<T>(_ block: () -> T) -> T {
         if Thread.isMainThread {
             return block()
         } else {
@@ -30,11 +30,6 @@ public protocol MMarkLinkDelegate: AnyObject {
 internal protocol MMarkTextComponent: AnyObject {
     var styleConfiguration: MMarkStyleConfiguration { get }
     var mmarkLinkDelegate: MMarkLinkDelegate? { get set }
-}
-
-/// 引用块竖条视图（使用 layer 标记）
-internal class MMarkBlockquoteBarLayer: CALayer {
-    // 用于标识这是引用条 layer
 }
 
 @available(iOS 15.0, *)
@@ -105,7 +100,7 @@ extension MMarkTextComponent where Self: UITextView {
             
             nsText.enumerateSubstrings(in: fullRange, options: .byLines) { substring, range, _, stop in
                 guard let line = substring?.lowercased() else { return }
-                if line.contains(cleanFragment) || cleanFragment.contains(line) {
+                if line.contains(cleanFragment) {
                     foundRange = range
                     stop.pointee = true
                 }
@@ -139,7 +134,7 @@ extension MMarkTextComponent where Self: UITextView {
         defer { isUpdating = false }
 
         // 移除所有旧的引用条 layer
-        layer.sublayers?.filter { $0 is MMarkBlockquoteBarLayer }.forEach { $0.removeFromSuperlayer() }
+        layer.sublayers?.filter { $0.name == "MMarkBlockquoteBar" }.forEach { $0.removeFromSuperlayer() }
         
         guard let attributedText = self.attributedText, attributedText.length > 0 else { return }
 
@@ -207,7 +202,8 @@ extension MMarkTextComponent where Self: UITextView {
                         }
                         let verticalOffset = lineHeight * 0.5
                         
-                        let barLayer = MMarkBlockquoteBarLayer()
+                        let barLayer = CALayer()
+                        barLayer.name = "MMarkBlockquoteBar"
                         barLayer.frame = CGRect(
                             x: barX,
                             y: minY + verticalOffset,
@@ -247,7 +243,8 @@ extension MMarkTextComponent where Self: UITextView {
                         }
                         let verticalOffset = lineHeight * 0.5
                         
-                        let barLayer = MMarkBlockquoteBarLayer()
+                        let barLayer = CALayer()
+                        barLayer.name = "MMarkBlockquoteBar"
                         barLayer.frame = CGRect(
                             x: barX,
                             y: minY + textContainerInset.top + verticalOffset,

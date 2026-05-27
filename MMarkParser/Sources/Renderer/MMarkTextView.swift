@@ -75,6 +75,6 @@ extension MMarkTextView {
 @available(iOS 15.0, *)
 extension MMarkTextView {
     internal func updateBlockquoteBars() {
-        renderBlockquoteBars(isUpdating: &isUpdatingBars, subviews: subviews)
+        renderBlockquoteBars(isUpdating: &isUpdatingBars)
     }
 }

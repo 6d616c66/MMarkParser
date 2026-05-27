@@ -355,7 +355,7 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
     internal var isUpdatingBars = false
 
     private func updateBlockquoteBars() {
-        renderBlockquoteBars(isUpdating: &isUpdatingBars, subviews: subviews)
+        renderBlockquoteBars(isUpdating: &isUpdatingBars)
     }
 
     // MARK: - Size Change

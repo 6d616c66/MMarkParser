@@ -15,11 +15,11 @@ extension DispatchQueue {
     }
 }
 
-/// Delegate protocol for handling link tapara in Markdown content.
+/// Delegate protocol for handling link taps in Markdown content.
 @available(iOS 15.0, *)
 @MainActor
 public protocol MMarkLinkDelegate: AnyObject {
-    /// Called when the user tapara a link, footnote reference, or anchor in the text view.
+    /// Called when the user taps a link, footnote reference, or anchor in the text view.
     /// - Parameters:
     ///   - textView: The text view that received the tap.
     ///   - url: The tapped URL, or nil if the URL could not be parsed.
@@ -38,34 +38,32 @@ internal protocol MMarkTextComponent: AnyObject {
 @available(iOS 15.0, *)
 extension MMarkTextComponent where Self: UITextView {
 
-    /// 注册自定义附件视图提供者
+    /// 注册附件视图提供者以激活 TextKit 2 机制。
+    /// 注册基类 NSTextAttachmentViewProvider 即可；实际分派由
+    /// MMarkBaseAttachment.viewProvider(for:location:textContainer:) 处理。
     internal func registerCommonViewProviders() {
-        NSTextAttachment.registerViewProviderClass(MMarkCodeBlockViewProvider.self, forFileType: MMarkBaseAttachment.fileType)
-        NSTextAttachment.registerViewProviderClass(MMarkTableViewProvider.self, forFileType: MMarkBaseAttachment.fileType)
-        NSTextAttachment.registerViewProviderClass(MMarkMathBlockViewProvider.self, forFileType: MMarkBaseAttachment.fileType)
-        NSTextAttachment.registerViewProviderClass(MMarkImageViewProvider.self, forFileType: MMarkBaseAttachment.fileType)
-        NSTextAttachment.registerViewProviderClass(MMarkListMarkerViewProvider.self, forFileType: MMarkBaseAttachment.fileType)
+        NSTextAttachment.registerViewProviderClass(NSTextAttachmentViewProvider.self, forFileType: MMarkBaseAttachment.fileType)
     }
 
     /// 处理通用链接跳转（脚注和锚点）
-    internal func handleCommonLink(_ URL: URL?, in textView: UITextView) -> Bool {
+    internal func handleCommonLink(_ url: URL?, in textView: UITextView) -> Bool {
         // 1. 优先回调给外部代理
         if let delegate = self.mmarkLinkDelegate {
-            let shouldContinue = delegate.mmarkTextView(textView, shouldOpen: URL)
+            let shouldContinue = delegate.mmarkTextView(textView, shouldOpen: url)
             if !shouldContinue { return false }
         }
 
-        guard let URL = URL else { return false }
+        guard let url = url else { return false }
 
-        let scheme = URL.scheme?.lowercased()
-        let isWebLink = scheme == "http" || scheme == "httpara" || scheme == "mailto" || scheme == "tel"
+        let scheme = url.scheme?.lowercased()
+        let isWebLink = scheme == "http" || scheme == "https" || scheme == "mailto" || scheme == "tel"
 
         // 如果不是标准网页链接，我们应该内部处理或拦截，防止系统尝试打开导致 crash 或权限错误
         guard let attributedText = textView.attributedText, attributedText.length > 0 else { return isWebLink }
 
         // 2. 内部逻辑：脚注处理
         if scheme == "footnote" {
-            let components = URL.path.split(separator: "/").filter { !$0.isEmpty }.map(String.init)
+            let components = url.path.split(separator: "/").filter { !$0.isEmpty }.map(String.init)
             guard components.count >= 2 else { return false }
             let label = components[1]
             let fullRange = NSRange(location: 0, length: attributedText.length)
@@ -84,13 +82,13 @@ extension MMarkTextComponent where Self: UITextView {
         }
 
         // 3. 内部逻辑：锚点跳转
-        let absoluteStr = URL.absoluteString
-        let hasFragment = URL.fragment != nil
-        // 判定条件：没有 scheme 且以 # 开头，或者是纯片段链接，或者是一个带有片段的 Web 链接（我们先尝试本地跳转）
-        let isPotentialInternalAnchor = (scheme == nil && (absoluteStr.hasPrefix("#") || hasFragment)) || absoluteStr.hasPrefix("#")
+        let absoluteStr = url.absoluteString
+        let hasFragment = url.fragment != nil
+        // 判定条件：以 # 开头的纯片段链接，或没有 scheme 但有 fragment 的链接
+        let isPotentialInternalAnchor = absoluteStr.hasPrefix("#") || (scheme == nil && hasFragment)
 
         if isPotentialInternalAnchor {
-            let fragment = URL.fragment ?? (absoluteStr.hasPrefix("#") ? String(absoluteStr.dropFirst()) : absoluteStr)
+            let fragment = url.fragment ?? (absoluteStr.hasPrefix("#") ? String(absoluteStr.dropFirst()) : absoluteStr)
             let decoded = fragment.removingPercentEncoding ?? fragment
             guard !decoded.isEmpty else { return isWebLink }
 
@@ -131,7 +129,7 @@ extension MMarkTextComponent where Self: UITextView {
     }
 
     /// 渲染引用块侧边条
-    internal func renderBlockquoteBars(isUpdating: inout Bool, subviews: [UIView]) {
+    internal func renderBlockquoteBars(isUpdating: inout Bool) {
         guard !isUpdating else { return }
         isUpdating = true
         defer { isUpdating = false }
@@ -165,7 +163,7 @@ extension MMarkTextComponent where Self: UITextView {
         }
 
         // 为每个深度层级创建连续的引用条
-        for (depth, ranges) in depthRanges {
+        for (depth, ranges) in depthRanges.sorted(by: { $0.key < $1.key }) {
             // 合并重叠或相邻的范围
             let mergedRanges = mergeRanges(ranges)
 
@@ -250,6 +248,8 @@ extension MMarkTextComponent where Self: UITextView {
         }
     }
 
+    /// 获取指定范围处的行高。仅检查范围起始位置的属性，
+    /// 若范围内包含多种样式，可能不够精确，但用于引用条垂直偏移微调已足够。
     private func lineHeight(at range: NSRange, from attributedText: NSAttributedString) -> CGFloat {
         var height: CGFloat = styleConfiguration.paragraphStyle.font.lineHeight
         if let para = attributedText.attribute(.paragraphStyle, at: range.location, effectiveRange: nil) as? NSParagraphStyle,
@@ -260,7 +260,8 @@ extension MMarkTextComponent where Self: UITextView {
     }
 
     /// 合并重叠或相邻的范围
-    private func mergeRanges(_ ranges: [NSRange]) -> [NSRange] {
+    /// `maxMergeGap` 允许合并间隔不超过该值的相邻范围（容忍 \n\n 等空白字符间隙）
+    private func mergeRanges(_ ranges: [NSRange], maxMergeGap: Int = 2) -> [NSRange] {
         guard !ranges.isEmpty else { return [] }
 
         let sorted = ranges.sorted { $0.location < $1.location }
@@ -273,7 +274,7 @@ extension MMarkTextComponent where Self: UITextView {
             let nextStart = next.location
 
             // 如果范围重叠或相邻（允许小间隙），则合并
-            if nextStart <= currentEnd + 2 {
+            if nextStart <= currentEnd + maxMergeGap {
                 let newEnd = max(currentEnd, next.location + next.length)
                 current = NSRange(location: current.location, length: newEnd - current.location)
             } else {

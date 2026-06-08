@@ -1,4 +1,7 @@
 PODS:
+  - BeautifulMermaidSwift (1.0.0):
+    - ElkSwift
+  - ElkSwift (1.0.0)
   - iosMath (2.2.0)
   - Kingfisher (8.9.0)
   - LookinServer/Core (1.2.8)
@@ -6,16 +9,22 @@ PODS:
     - LookinServer/Core
   - md4c/Core (0.5.3)
   - MMarkParser (1.0.0):
+    - BeautifulMermaidSwift
     - iosMath
     - Kingfisher
     - md4c/Core
+    - Splash
+  - Splash (1.0.0)
 
 DEPENDENCIES:
+  - BeautifulMermaidSwift (from `../BeautifulMermaidSwift`)
+  - ElkSwift (from `../ElkSwift`)
   - iosMath (from `https://github.com/6d616c66/iosMath.git`, branch `master`)
   - Kingfisher
   - LookinServer/Swift
   - md4c/Core (from `https://github.com/6d616c66/md4c.git`, branch `master`)
   - MMarkParser (from `../MMarkParser`)
+  - Splash (from `../Splash`)
 
 SPEC REPOS:
   trunk:
@@ -23,6 +32,10 @@ SPEC REPOS:
     - LookinServer
 
 EXTERNAL SOURCES:
+  BeautifulMermaidSwift:
+    :path: "../BeautifulMermaidSwift"
+  ElkSwift:
+    :path: "../ElkSwift"
   iosMath:
     :branch: master
     :git: https://github.com/6d616c66/iosMath.git
@@ -31,6 +44,8 @@ EXTERNAL SOURCES:
     :git: https://github.com/6d616c66/md4c.git
   MMarkParser:
     :path: "../MMarkParser"
+  Splash:
+    :path: "../Splash"
 
 CHECKOUT OPTIONS:
   iosMath:
@@ -41,12 +56,15 @@ CHECKOUT OPTIONS:
     :git: https://github.com/6d616c66/md4c.git
 
 SPEC CHECKSUMS:
+  BeautifulMermaidSwift: 838e2c8323ff79b47ac4f2040f5c5645ee5c8ef1
+  ElkSwift: 59a52a8933e46182109416e9f8149d5742de0ea4
   iosMath: d440483f5b561a196d3b115cb4078f138ac3e8d6
   Kingfisher: 90f3a3c2871a71e01d5493c1c196fc2d3ff132cf
   LookinServer: 1b2b61c6402ae29fa22182d48f5cd067b4e99e80
   md4c: 47723b62c5014d75567708925b30ef38a53f4cfe
-  MMarkParser: 3f427e73cefcc9ecb17067106c505a93aed4d339
+  MMarkParser: 1e819a444e9b58e4054d10faf1ab72415cdbb945
+  Splash: 3c76e27b7df5c68a1b63916a786e0ab2faa582f1
 
-PODFILE CHECKSUM: efde2cc2adb81282906dbca47f854114c15f0661
+PODFILE CHECKSUM: b91ac192b596072567feedef284d1c2912d6dd03
 
 COCOAPODS: 1.16.2

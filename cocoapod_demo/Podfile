@@ -4,6 +4,9 @@ inhibit_all_warnings!
 
 target 'cocoapod_demo' do
   pod 'MMarkParser', :path => '../MMarkParser'
+  pod 'Splash', :path => '../Splash'
+  pod 'ElkSwift', :path => '../ElkSwift'
+  pod 'BeautifulMermaidSwift', :path => '../BeautifulMermaidSwift'
   pod 'iosMath', :git => 'https://github.com/6d616c66/iosMath.git', :branch => 'master'
   pod 'md4c/Core', :git => 'https://github.com/6d616c66/md4c.git', :branch => 'master'
   pod 'Kingfisher'

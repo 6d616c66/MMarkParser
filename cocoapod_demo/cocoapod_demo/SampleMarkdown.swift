@@ -665,6 +665,94 @@ let sampleMarkdown = """
 
     ---
 
+    # 十二、Mermaid 图表测试
+
+    ## 12.1 流程图 (Flowchart)
+
+    ```mermaid
+    graph TD
+        A[开始] --> B{是否有账号?}
+        B -->|是| C[登录]
+        B -->|否| D[注册]
+        C --> E[进入主页]
+        D --> E
+        E --> F{操作选择}
+        F -->|浏览| G[查看内容]
+        F -->|编辑| H[修改资料]
+        F -->|退出| I[登出]
+    ```
+
+    ## 12.2 时序图 (Sequence Diagram)
+
+    ```mermaid
+    sequenceDiagram
+        participant 用户
+        participant 客户端
+        participant 服务器
+        participant 数据库
+        用户->>客户端: 发起请求
+        客户端->>服务器: API 调用
+        服务器->>数据库: 查询数据
+        数据库-->>服务器: 返回结果
+        服务器-->>客户端: 响应数据
+        客户端-->>用户: 显示结果
+    ```
+
+    ## 12.3 类图 (Class Diagram)
+
+    ```mermaid
+    classDiagram
+        class Animal {
+            +String name
+            +Int age
+            +makeSound()
+        }
+        class Dog {
+            +fetch()
+        }
+        class Cat {
+            +purr()
+        }
+        Animal <|-- Dog
+        Animal <|-- Cat
+    ```
+
+    ## 12.4 ER 图
+
+    ```mermaid
+    erDiagram
+        USER ||--o{ ORDER : places
+        USER {
+            int id
+            string name
+            string email
+        }
+        ORDER ||--|{ ORDER_ITEM : contains
+        ORDER {
+            int id
+            date created_at
+            float total
+        }
+        ORDER_ITEM {
+            int id
+            string product_name
+            int quantity
+        }
+    ```
+
+    ## 12.5 左右流程图
+
+    ```mermaid
+    graph LR
+        A[输入] --> B[处理]
+        B --> C{判断}
+        C -->|成功| D[输出]
+        C -->|失败| E[重试]
+        E --> B
+    ```
+
+    ---
+
     # 十四、边界情况测试
 
     ## 14.1 空内容测试

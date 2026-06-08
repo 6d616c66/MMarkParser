@@ -1,17 +1,19 @@
 # MMarkParser
 
-A Markdown parsing and rendering library for iOS, built on TextKit 2 with full GFM support.
+A Markdown parsing and rendering library for iOS, built on TextKit 2 with full GFM support, **Mermaid diagram** rendering, and **LaTeX math** display.
 
 ## Features
 
 - **Standard Markdown** — headings, paragraphs, bold, italic, strikethrough, links, images, code
-- **GFM Extensions** — tables, task lists, autolinks, strikethrough
+- **GFM Extensions** — tables, task lists, autolinks, strikethrough, footnotes
+- **Mermaid Diagrams** — code blocks with `mermaid` language render as Flowcharts, Sequence Diagrams, Class Diagrams, ER Diagrams
 - **LaTeX Math** — inline (`$...$`) and block (`$$...$$`) math rendered via iosMath
 - **Syntax Highlighting** — code blocks with language-aware highlighting (Swift + generic)
-- **Footnotes** — GFM-style footnote references and definitions
+- **Footnotes** — GFM-style footnote references and definitions with backlink navigation
 - **Nested Blockquotes** — with customizable bar colors and backgrounds
 - **Fully Customizable** — fonts, colors, spacing for every element via `MMarkStyleConfiguration`
 - **TextKit 2** — modern layout engine, designed for iOS 15+
+- **Dark Mode** — Mermaid diagrams auto-adapt when system appearance changes
 
 ## Demo
 
@@ -37,6 +39,9 @@ MMarkParser depends on:
 - [md4c](https://github.com/mity/md4c) — Markdown parsing engine (SAX/callback model)
 - [iosMath](https://github.com/kostub/iosMath) — LaTeX math rendering
 - [Kingfisher](https://github.com/onevcat/Kingfisher) — remote image loading (for `![](url)` images)
+- [BeautifulMermaidSwift](https://github.com/6d616c66/MMarkParser) — Mermaid diagram rendering (bundled)
+- [ElkSwift](https://github.com/6d616c66/MMarkParser) — Elk layout engine for Mermaid (bundled)
+- [Splash](https://github.com/6d616c66/MMarkParser) — Swift syntax highlighting (bundled)
 
 ## Quick Start
 
@@ -79,6 +84,11 @@ config.blockquoteBorderColor = .systemBlue
 config.blockquoteBorderWidth = 4
 config.blockquoteBackgroundColor = UIColor.systemBlue.withAlphaComponent(0.05)
 
+// Customize Mermaid theme
+config.mermaidTheme = .zincLight
+config.mermaidAutoDarkMode = true  // auto-switch to dark theme
+config.mermaidCornerRadius = 12
+
 let result = MMarkParser.parse(markdown: markdown, configuration: config)
 ```
 
@@ -102,8 +112,43 @@ See `MMarkStyleConfiguration.swift` for all available options.
 | Tables | GFM |
 | Horizontal Rules | Full |
 | LaTeX Math | `$...$` inline, `$$...$$` block |
+| Mermaid Diagrams | ```` ```mermaid ```` code blocks |
 | Footnotes | GFM |
 | Autolinks | URL, email, www |
+
+## Mermaid Diagrams
+
+Render diagrams directly in Markdown using ```` ```mermaid ```` fenced code blocks:
+
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B{Choice}
+    B -->|Yes| C[Option 1]
+    B -->|No| D[Option 2]
+```
+````
+
+### Supported diagram types
+
+- **Flowchart** (`graph TD`, `graph LR`, etc.)
+- **Sequence Diagram** (`sequenceDiagram`)
+- **Class Diagram** (`classDiagram`)
+- **ER Diagram** (`erDiagram`)
+- **State Diagram** (`stateDiagram`)
+- **XY Chart** (`xychart`)
+
+### Mermaid configuration
+
+| Property | Type | Default | Description |
+|---|---|---|---|
+| `mermaidTheme` | `DiagramTheme` | `.default` | Base rendering theme |
+| `mermaidAutoDarkMode` | `Bool` | `true` | Auto-switch theme on appearance change |
+| `mermaidBackgroundColor` | `UIColor` | systemGray alpha 0.1 | Body background |
+| `mermaidHeaderBackgroundColor` | `UIColor` | systemGray alpha 0.3 | Header background |
+| `mermaidCornerRadius` | `CGFloat` | 12 | Rounded corners |
+| `mermaidPadding` | `CGFloat` | 12 | Content padding |
+| `mermaidHeaderHeight` | `CGFloat` | 32 | Header bar height |
 
 ## Architecture
 
@@ -130,8 +175,8 @@ See `MMarkStyleConfiguration.swift` for all available options.
 │     leave_span/text    │    │ MMarkStyleConfiguration.swift│
 │   Attribute stacking   │    │   Full style definitions     │
 │   Table accumulation   │    │                              │
-│   Footnote processing  │    │ MMarkFontLoader.swift        │
-│                        │    │   KaTeX font registration    │
+│   Mermaid detection    │    │ MMarkFontLoader.swift        │
+│   Footnote processing  │    │   KaTeX font registration    │
 │                        │    │                              │
 │                        │    │ MMarkTextCommon.swift        │
 │                        │    │   Shared types & helpers     │
@@ -150,6 +195,7 @@ See `MMarkStyleConfiguration.swift` for all available options.
 │ MMarkImageAttachment          Remote images (Kingfisher)    │
 │ MMarkTableAttachment          GFM table rendering           │
 │ MMarkMathBlockAttachment      LaTeX math (iosMath)          │
+│ MMarkMermaidAttachment        Mermaid diagram rendering     │
 │ MMarkHorizontalRuleAttachment Horizontal rule separator     │
 │ MMarkListMarkerAttachment     List bullet/number markers    │
 └─────────────────────────────────────────────────────────────┘
@@ -179,44 +225,60 @@ graph TD
     K --> L[Screen]
 ```
 
+### Mermaid Rendering Flow
+
+```mermaid
+flowchart LR
+    A[```mermaid code block] --> B{Language = mermaid?}
+    B -->|Yes| C[MMarkMermaidModel.create]
+    B -->|No| D[MMarkCodeBlock: syntax highlight]
+    C --> E[MermaidRenderer.renderImage]
+    E --> F[MMarkMermaidAttachment]
+    F --> G[MMarkMermaidViewProvider]
+    G --> H[MMarkMermaidView]
+    H --> I[Scrollable Image with Header]
+```
+
 ### Module Overview
 
 ```
 MMarkParser/
-├── Sources/
-│   ├── MMarkParser.swift                    # Public API entry point
-│   ├── Parser/
-│   │   ├── CMarkParser.swift                # Parser configuration & md4c options
-│   │   └── MMarkParserWrapper.swift         # md4c SAX callback handler (~1100 lines)
-│   ├── Renderer/
-│   │   ├── MMarkTextView.swift              # TextKit 2 text view with blockquote bars
-│   │   ├── MMarkStreamTextView.swift        # Streaming markdown text view
-│   │   ├── MMarkStyleConfiguration.swift    # Style definitions for all elements
-│   │   ├── MMarkFontLoader.swift            # KaTeX font registration
-│   │   ├── MMarkTextCommon.swift            # Shared types, constants, helpers
-│   │   └── Attachments/
-│   │       ├── MMarkBaseAttachment/         # Base attachment & model classes
-│   │       ├── MMarkCodeBlockAttachment/    # Code block (model + view + provider)
-│   │       ├── MMarkImageAttachment/        # Remote image (Kingfisher integration)
-│   │       ├── MMarkTableAttachment/        # GFM table (model + view + provider)
-│   │       ├── MMarkMathBlockAttachment/    # LaTeX math block (iosMath integration)
-│   │       ├── MMarkHorizontalRuleAttachment/ # Horizontal rule separator
-│   │       └── MMarkListMarkerAttachment/   # List bullet/number rendering
-│   └── Splash/                              # Syntax highlighting (bundled)
-│       ├── Grammar/                         # Language grammars (Swift + generic)
-│       ├── Tokenizing/                      # Lexer & token types
-│       ├── Syntax/                          # Highlighter engine
-│       ├── Output/                          # AttributedString output formatter
-│       └── Theming/                         # Color & font themes
-└── Resources/                               # KaTeX font files (.ttf)
+├── MMarkParser.swift                    # Public API entry point
+├── Parser/
+│   ├── CMarkParser.swift                # Parser configuration & md4c options
+│   └── MMarkParserWrapper.swift         # md4c SAX callback handler (~1450 lines)
+├── Renderer/
+│   ├── MMarkTextView.swift              # TextKit 2 text view with blockquote bars
+│   ├── MMarkStreamTextView.swift        # Streaming markdown text view
+│   ├── MMarkStyleConfiguration.swift    # Style definitions for all elements
+│   ├── MMarkFontLoader.swift            # KaTeX font registration
+│   ├── MMarkTextCommon.swift            # Shared types, constants, helpers
+│   └── Attachments/
+│       ├── MMarkBaseAttachment/         # Base attachment & model classes
+│       ├── MMarkCodeBlockAttachment/    # Code block (model + view + provider)
+│       ├── MMarkImageAttachment/        # Remote image (Kingfisher integration)
+│       ├── MMarkTableAttachment/        # GFM table (model + view + provider)
+│       ├── MMarkMathBlockAttachment/    # LaTeX math block (iosMath integration)
+│       ├── MMarkMermaidAttachment/      # Mermaid diagram (BeautifulMermaidSwift)
+│       ├── MMarkHorizontalRuleAttachment/ # Horizontal rule separator
+│       └── MMarkListMarkerAttachment/   # List bullet/number rendering
+├── Resources/                           # KaTeX font files (.ttf)
+│   └── MMarkParser.bundle/
+│       └── KaTeXFonts/
+
+Local Pods:
+├── Splash/                              # Syntax highlighting (extracted pod)
+├── BeautifulMermaidSwift/               # Mermaid diagram rendering engine
+└── ElkSwift/                            # Elk layout engine bridge
 ```
 
 ### Key Design Decisions
 
 - **md4c SAX model**: Uses callback-driven parsing (`enter_block`/`leave_block`/`enter_span`/`leave_span`/`text`) instead of AST tree traversal. Incrementally builds `NSAttributedString` during the parse walk.
 - **Attribute stacking**: An attribute stack (`pushAttrs`/`popAttrs`) tracks style context through nested block/inline structures, ensuring correct attribute propagation (e.g., blockquote attributes carry into bold/italic/link children).
-- **TextKit 2 attachments**: Complex elements (code blocks, tables, math, images, horizontal rules, list markers) are rendered as `NSTextAttachment` subclasses with corresponding `NSTextAttachmentViewProvider` classes for lazy view creation.
+- **TextKit 2 attachments**: Complex elements (code blocks, tables, math, images, Mermaid, horizontal rules, list markers) are rendered as `NSTextAttachment` subclasses with corresponding `NSTextAttachmentViewProvider` classes for lazy view creation.
 - **Blockquote bars**: Drawn via Core Graphics `draw(_:)` override in `MMarkTextView`, using `enumerateTextLayoutFragments` (TextKit 2 API) to determine fragment positions — avoids subview management issues.
+- **Mermaid detection**: Code blocks with language `mermaid` are intercepted in `leaveBlock` — the content is rendered to a `UIImage` via `BeautifulMermaidSwift`, then presented as a scrollable attachment view with a header bar showing the diagram type.
 
 ## Referenced
 
@@ -234,3 +296,5 @@ MMarkParser is available under the MIT license. See the [LICENSE](LICENSE) file 
 - [iosMath](https://github.com/kostub/iosMath) — LaTeX math rendering
 - [Kingfisher](https://github.com/onevcat/Kingfisher) — Image downloading
 - [Splash](https://github.com/JohnSundell/Splash) — Swift syntax highlighting
+- [BeautifulMermaidSwift](https://github.com/6d616c66/MMarkParser) — Mermaid diagram rendering
+- [ElkSwift](https://github.com/6d616c66/MMarkParser) — Elk layout engine

@@ -10,6 +10,7 @@ class ViewController: UIViewController {
 
         if #available(iOS 15.0, *) {
             textView = MMarkTextView()
+            textView.bounds = CGRect(x: 0, y: 0, width: UIScreen.main.bounds.size.width - 32, height: UIScreen.main.bounds.size.height)
             textView.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(textView)
         } else {

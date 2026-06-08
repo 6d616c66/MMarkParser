@@ -8,10 +8,19 @@ Pod::Spec.new do |s|
   s.author       = { "malf" => "malongfei@immotors.com" }
   s.platform     = :ios, "15.0"
   s.source       = { :git => "https://github.com/6d616c66/MMarkParser.git", :tag => s.version.to_s }
-  s.source_files = "Sources/**/*.{swift,h,m}"
-  s.resources = ['Sources/Resources/MMarkParser.bundle']
-  s.swift_version = "5.7"
+  s.swift_version = "5.9"
   s.frameworks   = "UIKit", "QuartzCore"
+
+  s.source_files = [
+    "MMarkParser.swift",
+    "Parser/**/*.{swift,h,m}",
+    "Renderer/**/*.{swift,h,m}"
+  ]
+  s.resources = ['Resources/MMarkParser.bundle']
+  
+  s.dependency "Splash"
+  s.dependency "BeautifulMermaidSwift"
+  
   s.dependency "md4c/Core"
   s.dependency "iosMath"
   s.dependency "Kingfisher"

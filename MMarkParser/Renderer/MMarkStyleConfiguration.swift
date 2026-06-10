@@ -8,6 +8,42 @@ public enum ListMarkerMode {
     case image
 }
 
+/// Mermaid 图表样式配置
+public struct MermaidStyle {
+    /// 图表主题
+    public var theme: DiagramTheme
+    /// 图表背景色（body 区域）
+    public var backgroundColor: UIColor
+    /// 图表 header 背景色
+    public var headerBackgroundColor: UIColor
+    /// 图表圆角
+    public var cornerRadius: CGFloat
+    /// 图表内边距
+    public var padding: CGFloat
+    /// 图表 header 高度
+    public var headerHeight: CGFloat
+    /// 是否跟随暗黑模式自动切换主题
+    public var autoDarkMode: Bool
+
+    public init(
+        theme: DiagramTheme = .default,
+        backgroundColor: UIColor = UIColor.systemGray.withAlphaComponent(0.1),
+        headerBackgroundColor: UIColor = UIColor.systemGray.withAlphaComponent(0.3),
+        cornerRadius: CGFloat = 12,
+        padding: CGFloat = 12,
+        headerHeight: CGFloat = 32,
+        autoDarkMode: Bool = true
+    ) {
+        self.theme = theme
+        self.backgroundColor = backgroundColor
+        self.headerBackgroundColor = headerBackgroundColor
+        self.cornerRadius = cornerRadius
+        self.padding = padding
+        self.headerHeight = headerHeight
+        self.autoDarkMode = autoDarkMode
+    }
+}
+
 /// Markdown 样式配置
 public struct MMarkStyleConfiguration {
     /// 标题样式配置
@@ -140,21 +176,8 @@ public struct MMarkStyleConfiguration {
     /// iosMath 渲染字体 (nil 时使用 Latin Modern Math 默认字体)
     public var mathDisplayFont: MTFont?
 
-    /// Mermaid 图表主题
-    public var mermaidTheme: DiagramTheme
-
-    /// Mermaid 图表背景色（body 区域）
-    public var mermaidBackgroundColor: UIColor
-    /// Mermaid 图表 header 背景色
-    public var mermaidHeaderBackgroundColor: UIColor
-    /// Mermaid 图表圆角
-    public var mermaidCornerRadius: CGFloat
-    /// Mermaid 图表内边距
-    public var mermaidPadding: CGFloat
-    /// Mermaid 图表 header 高度
-    public var mermaidHeaderHeight: CGFloat
-    /// Mermaid 图表是否跟随暗黑模式自动切换主题
-    public var mermaidAutoDarkMode: Bool
+    /// Mermaid 图表样式
+    public var mermaidStyle: MermaidStyle
 
     /// 注脚引用样式（[N] 标记）
     public var footnoteReferenceStyle: CodeStyle
@@ -270,13 +293,7 @@ public struct MMarkStyleConfiguration {
             ),
             mathBlockBackgroundColor: UIColor.systemPurple.withAlphaComponent(0.05),
             mathBlockCornerRadius: 8,
-            mermaidTheme: .default,
-            mermaidBackgroundColor: UIColor.systemGray.withAlphaComponent(0.1),
-            mermaidHeaderBackgroundColor: UIColor.systemGray.withAlphaComponent(0.3),
-            mermaidCornerRadius: 12,
-            mermaidPadding: 12,
-            mermaidHeaderHeight: 32,
-            mermaidAutoDarkMode: true,
+            mermaidStyle: MermaidStyle(),
             footnoteReferenceStyle: CodeStyle(
                 font: .systemFont(ofSize: 12, weight: .semibold),
                 textColor: .systemBlue,
@@ -324,13 +341,7 @@ public struct MMarkStyleConfiguration {
         mathBlockBackgroundColor: UIColor,
         mathBlockCornerRadius: CGFloat,
         mathDisplayFont: MTFont? = nil,
-        mermaidTheme: DiagramTheme = .default,
-        mermaidBackgroundColor: UIColor = UIColor.systemGray.withAlphaComponent(0.1),
-        mermaidHeaderBackgroundColor: UIColor = UIColor.systemGray.withAlphaComponent(0.3),
-        mermaidCornerRadius: CGFloat = 12,
-        mermaidPadding: CGFloat = 12,
-        mermaidHeaderHeight: CGFloat = 32,
-        mermaidAutoDarkMode: Bool = true,
+        mermaidStyle: MermaidStyle = MermaidStyle(),
         footnoteReferenceStyle: CodeStyle,
         footnoteStyle: HeadingStyle,
         footnoteBackrefColor: UIColor
@@ -362,13 +373,7 @@ public struct MMarkStyleConfiguration {
         self.mathBlockBackgroundColor = mathBlockBackgroundColor
         self.mathBlockCornerRadius = mathBlockCornerRadius
         self.mathDisplayFont = mathDisplayFont
-        self.mermaidTheme = mermaidTheme
-        self.mermaidBackgroundColor = mermaidBackgroundColor
-        self.mermaidHeaderBackgroundColor = mermaidHeaderBackgroundColor
-        self.mermaidCornerRadius = mermaidCornerRadius
-        self.mermaidPadding = mermaidPadding
-        self.mermaidHeaderHeight = mermaidHeaderHeight
-        self.mermaidAutoDarkMode = mermaidAutoDarkMode
+        self.mermaidStyle = mermaidStyle
         self.footnoteReferenceStyle = footnoteReferenceStyle
         self.footnoteStyle = footnoteStyle
         self.footnoteBackrefColor = footnoteBackrefColor

@@ -151,6 +151,45 @@ public final class MMarkCodeBlockView: UIView {
         codeTextHeightConstraint?.isActive = true
     }
 
+    // MARK: - Language Grammar Map
+
+    private static let grammarMap: [String: Grammar] = [
+        // Python
+        "python": PythonGrammar(),
+        "py": PythonGrammar(),
+        "python3": PythonGrammar(),
+        // JavaScript / TypeScript
+        "javascript": JavaScriptGrammar(),
+        "js": JavaScriptGrammar(),
+        "jsx": JavaScriptGrammar(),
+        "typescript": JavaScriptGrammar(),
+        "ts": JavaScriptGrammar(),
+        "tsx": JavaScriptGrammar(),
+        "mjs": JavaScriptGrammar(),
+        "cjs": JavaScriptGrammar(),
+        // Shell / Bash
+        "bash": ShellGrammar(),
+        "sh": ShellGrammar(),
+        "shell": ShellGrammar(),
+        "zsh": ShellGrammar(),
+        "fish": ShellGrammar(),
+        "ksh": ShellGrammar(),
+        // HTML / XML
+        "html": HTMLGrammar(),
+        "htm": HTMLGrammar(),
+        "xhtml": HTMLGrammar(),
+        "xml": HTMLGrammar(),
+        "svg": HTMLGrammar(),
+        // CSS
+        "css": CSSGrammar(),
+        "scss": CSSGrammar(),
+        "sass": CSSGrammar(),
+        "less": CSSGrammar(),
+        // JSON
+        "json": JSONGrammar(),
+        "jsonc": JSONGrammar(),
+    ]
+
     static func highlightedCode(language: String?, code: String, configuration: MMarkStyleConfiguration) -> NSAttributedString {
         let style = configuration.codeBlockStyle
         let font = Font(size: Double(style.font.pointSize))
@@ -164,7 +203,8 @@ public final class MMarkCodeBlockView: UIView {
 
         let theme = Theme.presentation(withFont: font)
         let format = AttributedStringOutputFormat(theme: theme)
-        let highlighter = SyntaxHighlighter(format: format, grammar: SwiftGrammar())
+        let grammar = grammarMap[lang.lowercased()] ?? SwiftGrammar()
+        let highlighter = SyntaxHighlighter(format: format, grammar: grammar)
         return highlighter.highlight(code)
     }
 

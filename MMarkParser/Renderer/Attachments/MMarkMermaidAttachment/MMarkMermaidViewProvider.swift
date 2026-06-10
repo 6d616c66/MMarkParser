@@ -31,7 +31,7 @@ public final class MMarkMermaidViewProvider: NSTextAttachmentViewProvider {
         guard let attachment = self.textAttachment as? MMarkMermaidAttachment else { return }
         let config = attachment.configuration
 
-        guard config.mermaidAutoDarkMode else { return }
+        guard config.mermaidStyle.autoDarkMode else { return }
 
         let source = attachment.model.source
         let width = attachment.model.size.width
@@ -41,6 +41,10 @@ public final class MMarkMermaidViewProvider: NSTextAttachmentViewProvider {
             DispatchQueue.main.async { [weak self] in
                 guard let self = self, let view = self.mermaidView else { return }
                 view.updateImage(newModel.image)
+                // 通知 TextKit 刷新 attachment bounds，防止图片尺寸变化后裁切或空白
+                if let textLayoutManager = self.textLayoutManager {
+                    textLayoutManager.invalidateLayout(for: NSTextRange(location: self.location))
+                }
             }
         }
     }

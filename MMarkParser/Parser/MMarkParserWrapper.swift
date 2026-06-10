@@ -560,10 +560,16 @@ private final class _MD4CHandler {
                 let language = lang.isEmpty ? nil : lang
 
                 let attrStr: NSMutableAttributedString
-                if language?.lowercased() == "mermaid",
-                   let mermaidModel = MMarkMermaidModel.create(source: trimmed, width: effectiveWidth, configuration: configuration) {
-                    let attachment = MMarkMermaidAttachment(attachmentType: .mermaid, content: mermaidModel, configuration: configuration)
-                    attrStr = NSMutableAttributedString(attachment: attachment)
+                if language?.lowercased() == "mermaid" {
+                    if let mermaidModel = MMarkMermaidModel.create(source: trimmed, width: effectiveWidth, configuration: configuration) {
+                        let attachment = MMarkMermaidAttachment(attachmentType: .mermaid, content: mermaidModel, configuration: configuration)
+                        attrStr = NSMutableAttributedString(attachment: attachment)
+                    } else {
+                        // Mermaid 渲染失败，显示错误状态而非回退到代码块
+                        let errorModel = MMarkMermaidModel.createError(source: trimmed, width: effectiveWidth, configuration: configuration)
+                        let attachment = MMarkMermaidAttachment(attachmentType: .mermaid, content: errorModel, configuration: configuration)
+                        attrStr = NSMutableAttributedString(attachment: attachment)
+                    }
                 } else {
                     let model = MMarkCodeBlockModel.create(language: language, code: trimmed, width: effectiveWidth, configuration: configuration)
                     let attachment = MMarkCodeBlockAttachment(attachmentType: .codeBlock, content: model)

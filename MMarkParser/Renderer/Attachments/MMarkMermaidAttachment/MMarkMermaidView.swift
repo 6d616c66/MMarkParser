@@ -45,21 +45,21 @@ public class MMarkMermaidView: UIView {
     // MARK: - Setup
 
     private func setupViews(with model: MMarkMermaidModel) {
-        let padding = configuration.mermaidPadding
-        let cornerRadius = configuration.mermaidCornerRadius
-        let headerHeight = configuration.mermaidHeaderHeight
+        let padding = configuration.mermaidStyle.padding
+        let cornerRadius = configuration.mermaidStyle.cornerRadius
+        let headerHeight = configuration.mermaidStyle.headerHeight
 
-        backgroundColor = configuration.mermaidBackgroundColor
+        backgroundColor = configuration.mermaidStyle.backgroundColor
         layer.cornerRadius = cornerRadius
         clipsToBounds = true
 
         // Header
-        headerView.backgroundColor = configuration.mermaidHeaderBackgroundColor
+        headerView.backgroundColor = configuration.mermaidStyle.headerBackgroundColor
         headerView.translatesAutoresizingMaskIntoConstraints = false
         addSubview(headerView)
 
         // Title label
-        titleLabel.text = model.diagramTypeName
+        titleLabel.text = model.isError ? "Mermaid (Error)" : model.diagramTypeName
         titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
         titleLabel.textColor = .secondaryLabel
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -77,6 +77,10 @@ public class MMarkMermaidView: UIView {
         scrollView.showsVerticalScrollIndicator = false
         scrollView.backgroundColor = .clear
         scrollView.translatesAutoresizingMaskIntoConstraints = false
+        // 对齐图片 scale，避免非 2x 设备模糊
+        if model.image.scale > 0 {
+            scrollView.contentScaleFactor = model.image.scale
+        }
         addSubview(scrollView)
 
         // ImageView（使用图片自然尺寸，支持横向滚动）
@@ -148,8 +152,13 @@ public class MMarkMermaidView: UIView {
         imageView.image = newImage
         imageWidthConstraint?.constant = newImage.size.width
         imageHeightConstraint?.constant = newImage.size.height
-        scrollViewWidthConstraint?.constant = max(0, newImage.size.width)
+        // scrollViewHeight 跟随图片高度变化
         scrollViewHeightConstraint?.constant = newImage.size.height
+        // scrollViewWidth 保持容器可见宽度，不随图片宽度变化
+        // 对齐图片 scale
+        if newImage.scale > 0 {
+            scrollView.contentScaleFactor = newImage.scale
+        }
     }
 
     // MARK: - Actions

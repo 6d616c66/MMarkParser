@@ -26,3 +26,6 @@ vendor/bundle/
 
 # Archives
 *.xcarchive
+
+# Qoder repowiki
+.qoder/

@@ -14,20 +14,23 @@ public class MMarkMermaidModel: MMarkBaseModel {
     public let renderedTheme: DiagramTheme
 
     /// 图片自然宽度（point），供 ScrollView 内容布局使用
-    public let imageWidth: CGFloat
+    public var imageWidth: CGFloat { image.size.width }
     /// 图片自然高度（point），供 ScrollView 内容布局使用
-    public let imageHeight: CGFloat
+    public var imageHeight: CGFloat { image.size.height }
 
     /// 是否为渲染失败的错误状态
     public let isError: Bool
 
-    public init(size: CGSize, image: UIImage, source: String, diagramType: DiagramType, renderedTheme: DiagramTheme, imageWidth: CGFloat, imageHeight: CGFloat, isError: Bool = false) {
+    /// 渲染错误的标题文字
+    static let errorTitle = "Mermaid (Error)"
+    /// 渲染错误的占位图文字
+    static let errorPlaceholderMessage = "Mermaid rendering failed"
+
+    public init(size: CGSize, image: UIImage, source: String, diagramType: DiagramType, renderedTheme: DiagramTheme, isError: Bool = false) {
         self.image = image
         self.source = source
         self.diagramType = diagramType
         self.renderedTheme = renderedTheme
-        self.imageWidth = imageWidth
-        self.imageHeight = imageHeight
         self.isError = isError
         super.init(size: size)
     }
@@ -64,10 +67,9 @@ public class MMarkMermaidModel: MMarkBaseModel {
     /// 根据源码首行关键词推断图表类型（避免重复 parse）
     private static func inferDiagramType(source: String) -> DiagramType {
         let firstLine = source
-            .components(separatedBy: .newlines)
-            .first?
+            .prefix(while: { $0 != "\n" })
             .lowercased()
-            .trimmingCharacters(in: .whitespaces) ?? ""
+            .trimmingCharacters(in: .whitespaces)
         if firstLine.hasPrefix("sequencediagram") { return .sequenceDiagram }
         if firstLine.hasPrefix("classdiagram") { return .classDiagram }
         if firstLine.hasPrefix("erdiagram") { return .erDiagram }
@@ -100,13 +102,9 @@ public class MMarkMermaidModel: MMarkBaseModel {
             let padding = configuration.mermaidStyle.padding
             let headerHeight = configuration.mermaidStyle.headerHeight
 
-            // 图片自然尺寸（point）
-            let imageWidth = image.size.width
-            let imageHeight = image.size.height
-
             // 总高度 = header + padding(上) + 图片自然高度 + padding(下)
             // 总宽度 = 容器宽度（ScrollView 会处理超出部分的水平滚动）
-            let totalHeight = headerHeight + padding + imageHeight + padding
+            let totalHeight = headerHeight + padding + image.size.height + padding
             let size = CGSize(width: width, height: totalHeight)
 
             return MMarkMermaidModel(
@@ -114,9 +112,7 @@ public class MMarkMermaidModel: MMarkBaseModel {
                 image: image,
                 source: source,
                 diagramType: diagramType,
-                renderedTheme: theme,
-                imageWidth: imageWidth,
-                imageHeight: imageHeight
+                renderedTheme: theme
             )
         } catch {
             print("Failed to render Mermaid: \(error)")
@@ -139,8 +135,6 @@ public class MMarkMermaidModel: MMarkBaseModel {
             source: source,
             diagramType: inferDiagramType(source: source),
             renderedTheme: configuration.mermaidStyle.theme,
-            imageWidth: errorImage.size.width,
-            imageHeight: errorImage.size.height,
             isError: true
         )
     }
@@ -156,7 +150,7 @@ public class MMarkMermaidModel: MMarkBaseModel {
                 .font: UIFont.systemFont(ofSize: 14, weight: .medium),
                 .foregroundColor: UIColor.systemRed
             ]
-            let text = "Mermaid rendering failed"
+            let text = Self.errorPlaceholderMessage
             let textSize = (text as NSString).size(withAttributes: attrs)
             let textRect = CGRect(
                 x: (width - textSize.width) / 2,

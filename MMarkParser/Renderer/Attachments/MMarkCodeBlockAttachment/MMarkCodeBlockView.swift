@@ -153,42 +153,33 @@ public final class MMarkCodeBlockView: UIView {
 
     // MARK: - Language Grammar Map
 
-    private static let grammarMap: [String: Grammar] = [
-        // Python
-        "python": PythonGrammar(),
-        "py": PythonGrammar(),
-        "python3": PythonGrammar(),
-        // JavaScript / TypeScript
-        "javascript": JavaScriptGrammar(),
-        "js": JavaScriptGrammar(),
-        "jsx": JavaScriptGrammar(),
-        "typescript": JavaScriptGrammar(),
-        "ts": JavaScriptGrammar(),
-        "tsx": JavaScriptGrammar(),
-        "mjs": JavaScriptGrammar(),
-        "cjs": JavaScriptGrammar(),
-        // Shell / Bash
-        "bash": ShellGrammar(),
-        "sh": ShellGrammar(),
-        "shell": ShellGrammar(),
-        "zsh": ShellGrammar(),
-        "fish": ShellGrammar(),
-        "ksh": ShellGrammar(),
-        // HTML / XML
-        "html": HTMLGrammar(),
-        "htm": HTMLGrammar(),
-        "xhtml": HTMLGrammar(),
-        "xml": HTMLGrammar(),
-        "svg": HTMLGrammar(),
-        // CSS
-        "css": CSSGrammar(),
-        "scss": CSSGrammar(),
-        "sass": CSSGrammar(),
-        "less": CSSGrammar(),
-        // JSON
-        "json": JSONGrammar(),
-        "jsonc": JSONGrammar(),
-    ]
+    private static var grammarCache: [String: Grammar] = [:]
+
+    private static func grammar(for language: String) -> Grammar {
+        if let cached = grammarCache[language] {
+            return cached
+        }
+        let g: Grammar = {
+            switch language {
+            case "python", "py", "python3":
+                return PythonGrammar()
+            case "javascript", "js", "jsx", "typescript", "ts", "tsx", "mjs", "cjs":
+                return JavaScriptGrammar()
+            case "bash", "sh", "shell", "zsh", "fish", "ksh":
+                return ShellGrammar()
+            case "html", "htm", "xhtml", "xml", "svg":
+                return HTMLGrammar()
+            case "css", "scss", "sass", "less":
+                return CSSGrammar()
+            case "json", "jsonc":
+                return JSONGrammar()
+            default:
+                return SwiftGrammar()
+            }
+        }()
+        grammarCache[language] = g
+        return g
+    }
 
     static func highlightedCode(language: String?, code: String, configuration: MMarkStyleConfiguration) -> NSAttributedString {
         let style = configuration.codeBlockStyle
@@ -203,7 +194,7 @@ public final class MMarkCodeBlockView: UIView {
 
         let theme = Theme.presentation(withFont: font)
         let format = AttributedStringOutputFormat(theme: theme)
-        let grammar = grammarMap[lang.lowercased()] ?? SwiftGrammar()
+        let grammar = grammar(for: lang.lowercased())
         let highlighter = SyntaxHighlighter(format: format, grammar: grammar)
         return highlighter.highlight(code)
     }

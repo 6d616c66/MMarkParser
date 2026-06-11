@@ -59,7 +59,7 @@ public class MMarkMermaidView: UIView {
         addSubview(headerView)
 
         // Title label
-        titleLabel.text = model.isError ? "Mermaid (Error)" : model.diagramTypeName
+        titleLabel.text = model.isError ? MMarkMermaidModel.errorTitle : model.diagramTypeName
         titleLabel.font = .systemFont(ofSize: 12, weight: .medium)
         titleLabel.textColor = .secondaryLabel
         titleLabel.translatesAutoresizingMaskIntoConstraints = false

@@ -85,9 +85,9 @@ config.blockquoteBorderWidth = 4
 config.blockquoteBackgroundColor = UIColor.systemBlue.withAlphaComponent(0.05)
 
 // Customize Mermaid theme
-config.mermaidTheme = .zincLight
-config.mermaidAutoDarkMode = true  // auto-switch to dark theme
-config.mermaidCornerRadius = 12
+config.mermaidStyle.theme = .zincLight
+config.mermaidStyle.autoDarkMode = true  // auto-switch to dark theme
+config.mermaidStyle.cornerRadius = 12
 
 let result = MMarkParser.parse(markdown: markdown, configuration: config)
 ```
@@ -138,17 +138,17 @@ graph TD
 - **State Diagram** (`stateDiagram`)
 - **XY Chart** (`xychart`)
 
-### Mermaid configuration
+### Mermaid configuration (via `config.mermaidStyle`)
 
 | Property | Type | Default | Description |
 |---|---|---|---|
-| `mermaidTheme` | `DiagramTheme` | `.default` | Base rendering theme |
-| `mermaidAutoDarkMode` | `Bool` | `true` | Auto-switch theme on appearance change |
-| `mermaidBackgroundColor` | `UIColor` | systemGray alpha 0.1 | Body background |
-| `mermaidHeaderBackgroundColor` | `UIColor` | systemGray alpha 0.3 | Header background |
-| `mermaidCornerRadius` | `CGFloat` | 12 | Rounded corners |
-| `mermaidPadding` | `CGFloat` | 12 | Content padding |
-| `mermaidHeaderHeight` | `CGFloat` | 32 | Header bar height |
+| `mermaidStyle.theme` | `DiagramTheme` | `.default` | Base rendering theme |
+| `mermaidStyle.autoDarkMode` | `Bool` | `true` | Auto-switch theme on appearance change |
+| `mermaidStyle.backgroundColor` | `UIColor` | systemGray alpha 0.1 | Body background |
+| `mermaidStyle.headerBackgroundColor` | `UIColor` | systemGray alpha 0.3 | Header background |
+| `mermaidStyle.cornerRadius` | `CGFloat` | 12 | Rounded corners |
+| `mermaidStyle.padding` | `CGFloat` | 12 | Content padding |
+| `mermaidStyle.headerHeight` | `CGFloat` | 32 | Header bar height |
 
 ## Architecture
 

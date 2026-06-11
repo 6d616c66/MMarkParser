@@ -214,20 +214,26 @@ public class MMarkStreamTextView: UITextView, MMarkTextComponent {
 
         accumulatedMarkdown += text
 
-        let currentMarkdown = accumulatedMarkdown
         let width = max(44, bounds.width - 32)
         let config = styleConfiguration
         parsingQueue.async { [weak self] in
             guard let self = self else { return }
+            // 只 parse 新增的 chunk，避免重新 parse 全量历史（O(n²) 问题）
             let parser = CMarkParser()
-            guard let attrStr = try? parser.parse(currentMarkdown, configuration: config, containerWidth: width) else {
+            guard let newAttrStr = try? parser.parse(text, configuration: config, containerWidth: width) else {
                 return
             }
 
             DispatchQueue.main.async {
-                self.fullAttrString = attrStr
+                guard let existing = self.fullAttrString else {
+                    self.fullAttrString = newAttrStr
+                    return
+                }
+                let combined = NSMutableAttributedString(attributedString: existing)
+                combined.append(newAttrStr)
+                self.fullAttrString = combined
 
-                if self.displayIndex >= attrStr.length {
+                if self.displayIndex >= combined.length {
                     return
                 }
 

@@ -226,9 +226,9 @@ public struct MMarkStyleConfiguration {
     }
 
     /// 默认 GFM 样式配置
-    public static var defaultStyle: MMarkStyleConfiguration {
-        let headingFontBase = UIFont.systemFont(ofSize: 28, weight: .bold)
+    public static let defaultStyle: MMarkStyleConfiguration = {
         let codeFont = UIFont.monospacedSystemFont(ofSize: 14, weight: .regular)
+        let paraFont = UIFont.systemFont(ofSize: 16, weight: .regular)
         // Try KaTeX fonts first, fall back to system serif/monospaced fonts
         let mathInlineFont = UIFont(name: "KaTeX_Math-Italic", size: 18)
         ?? UIFont(name: "KaTeX_Main-Regular", size: 18)
@@ -247,7 +247,7 @@ public struct MMarkStyleConfiguration {
             ],
             headingSpacingBefore: [1: 20, 2: 16, 3: 12, 4: 10, 5: 8, 6: 8],
             headingSpacing: [1: 12, 2: 10, 3: 8, 4: 6, 5: 6, 6: 6],
-            paragraphStyle: HeadingStyle(font: UIFont.systemFont(ofSize: 16, weight: .regular), textColor: .label),
+            paragraphStyle: HeadingStyle(font: paraFont, textColor: .label),
             codeStyle: CodeStyle(font: codeFont, textColor: .systemPink, backgroundColor: UIColor.systemGray.withAlphaComponent(0.1)),
             codeBlockStyle: CodeStyle(font: UIFont.monospacedSystemFont(ofSize: 14, weight: .regular), textColor: .black, backgroundColor: .systemGray),
             codeBlockHeaderBackgroundColor: UIColor.systemGray.withAlphaComponent(0.3),
@@ -270,15 +270,15 @@ public struct MMarkStyleConfiguration {
             taskListStyle: TaskListStyle(
                 checkedColor: .systemGreen,
                 uncheckedColor: .systemGray,
-                checkedFont: .systemFont(ofSize: 16, weight: .regular),
-                uncheckedFont: .systemFont(ofSize: 16, weight: .regular)
+                checkedFont: paraFont,
+                uncheckedFont: paraFont
             ),
             orderedListStyle: OrderedListStyle(
-                font: .systemFont(ofSize: 16, weight: .regular),
+                font: paraFont,
                 textColor: .label
             ),
             unorderedListStyle: UnorderedListStyle(
-                font: .systemFont(ofSize: 16, weight: .regular),
+                font: paraFont,
                 textColor: .label
             ),
             mathInlineStyle: CodeStyle(
@@ -305,7 +305,7 @@ public struct MMarkStyleConfiguration {
             ),
             footnoteBackrefColor: .systemBlue
         )
-    }
+    }()
 
     public init(
         headingStyles: [Int: HeadingStyle],

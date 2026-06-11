@@ -923,12 +923,6 @@ private final class _MD4CHandler {
         output(attrStr)
     }
 
-    private func renderInlineMath(_ latex: String) {
-        let convertedLatex = convertChemistryToLatex(latex)
-        let rendered = self.renderInlineMathImage(latex: convertedLatex)
-        result.append(rendered)
-    }
-
     /// Convert chemistry notation (\ce{...}, \chemfig{...}) to LaTeX math
     private func convertChemistryToLatex(_ latex: String) -> String {
         var result = latex

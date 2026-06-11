@@ -59,4 +59,19 @@ public class MMarkBaseAttachment: NSTextAttachment {
 
         return super.viewProvider(for: parentView, location: location, textContainer: textContainer)
     }
+
+    /// Typed access to contentModel. Subclasses call this in a one-liner computed property.
+    public func model<T>(as type: T.Type) -> T {
+        guard let m = contentModel as? T else {
+            fatalError("contentModel type mismatch")
+        }
+        return m
+    }
+
+    /// Default attachment bounds for container-style attachments (code, table, math, mermaid).
+    /// Constrains width to line fragment to prevent right-edge corner clipping.
+    public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
+        let width = max(44, min(contentModel.size.width, lineFrag.width) - 1)
+        return CGRect(origin: .zero, size: CGSize(width: width, height: contentModel.size.height))
+    }
 }

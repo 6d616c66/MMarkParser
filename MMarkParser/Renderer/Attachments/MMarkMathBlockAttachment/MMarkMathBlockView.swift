@@ -94,7 +94,4 @@ public final class MMarkMathBlockView: UIView {
 
     // MARK: - Layout
 
-    public override var intrinsicContentSize: CGSize {
-        return CGSize(width: frame.width, height: frame.height)
-    }
 }

@@ -4,12 +4,7 @@ import UIKit
 @available(iOS 15.0, *)
 public final class MMarkImageAttachment: MMarkBaseAttachment {
 
-    var model: MMarkImageModel {
-        guard let model = contentModel as? MMarkImageModel else {
-            fatalError("MMarkImageAttachment contentModel is not MMarkImageModel")
-        }
-        return model
-    }
+    var model: MMarkImageModel { model(as: MMarkImageModel.self) }
 
     public var url: String { model.url }
     public var alt: String { model.alt }

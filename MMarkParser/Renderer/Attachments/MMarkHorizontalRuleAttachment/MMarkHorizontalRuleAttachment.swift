@@ -5,9 +5,7 @@ import UIKit
 @available(iOS 15.0, *)
 public final class MMarkHorizontalRuleAttachment: MMarkBaseAttachment {
 
-    var model: MMarkHorizontalRuleModel {
-        return (contentModel as? MMarkHorizontalRuleModel) ?? _fallbackModel
-    }
+    var model: MMarkHorizontalRuleModel { (contentModel as? MMarkHorizontalRuleModel) ?? _fallbackModel }
     // Conservative default width avoids UIScreen.main access from off-main-thread TextKit 2 layout.
     private let _fallbackModel = MMarkHorizontalRuleModel.create(width: 320)
 

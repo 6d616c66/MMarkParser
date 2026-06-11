@@ -189,24 +189,7 @@ extension MMarkTextComponent where Self: UITextView {
                     }
 
                     if found && maxY > minY {
-                        let borderWidth = styleConfiguration.blockquoteBorderWidth
-                        let spacing: CGFloat = 8.0
-                        let blockquoteIndent: CGFloat = borderWidth + spacing
-                        let barX = textContainerInset.left + CGFloat(depth - 1) * blockquoteIndent
-
-                        let lineH = lineHeight(at: range, from: attributedText)
-                        let verticalOffset = lineH * 0.5
-
-                        let barLayer = CALayer()
-                        barLayer.name = "MMarkBlockquoteBar"
-                        barLayer.frame = CGRect(
-                            x: barX,
-                            y: minY + verticalOffset,
-                            width: borderWidth,
-                            height: maxY - minY
-                        )
-                        barLayer.backgroundColor = styleConfiguration.blockquoteBorderColor.cgColor
-                        layer.addSublayer(barLayer)
+                        addBlockquoteBar(depth: depth, minY: minY, maxY: maxY, range: range, attributedText: attributedText)
                     }
                 } else {
                     // TextKit 1: 需要遍历所有行来计算完整高度
@@ -224,28 +207,33 @@ extension MMarkTextComponent where Self: UITextView {
                     }
 
                     if found && maxY > minY {
-                        let borderWidth = styleConfiguration.blockquoteBorderWidth
-                        let spacing: CGFloat = 8.0
-                        let blockquoteIndent: CGFloat = borderWidth + spacing
-                        let barX = textContainerInset.left + CGFloat(depth - 1) * blockquoteIndent
-
-                        let lineH = lineHeight(at: range, from: attributedText)
-                        let verticalOffset = lineH * 0.5
-
-                        let barLayer = CALayer()
-                        barLayer.name = "MMarkBlockquoteBar"
-                        barLayer.frame = CGRect(
-                            x: barX,
-                            y: minY + textContainerInset.top + verticalOffset,
-                            width: borderWidth,
-                            height: maxY - minY
-                        )
-                        barLayer.backgroundColor = styleConfiguration.blockquoteBorderColor.cgColor
-                        layer.addSublayer(barLayer)
+                        addBlockquoteBar(depth: depth, minY: minY, maxY: maxY, range: range, attributedText: attributedText, textKitInset: textContainerInset.top)
                     }
                 }
             }
         }
+    }
+
+    /// 创建并添加一个引用块侧边条 CALayer
+    private func addBlockquoteBar(depth: Int, minY: CGFloat, maxY: CGFloat, range: NSRange, attributedText: NSAttributedString, textKitInset: CGFloat = 0) {
+        let borderWidth = styleConfiguration.blockquoteBorderWidth
+        let spacing: CGFloat = 8.0
+        let blockquoteIndent: CGFloat = borderWidth + spacing
+        let barX = textContainerInset.left + CGFloat(depth - 1) * blockquoteIndent
+
+        let lineH = lineHeight(at: range, from: attributedText)
+        let verticalOffset = lineH * 0.5
+
+        let barLayer = CALayer()
+        barLayer.name = "MMarkBlockquoteBar"
+        barLayer.frame = CGRect(
+            x: barX,
+            y: minY + textKitInset + verticalOffset,
+            width: borderWidth,
+            height: maxY - minY
+        )
+        barLayer.backgroundColor = styleConfiguration.blockquoteBorderColor.cgColor
+        layer.addSublayer(barLayer)
     }
 
     /// 获取指定范围处的行高。仅检查范围起始位置的属性，

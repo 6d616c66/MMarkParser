@@ -5,12 +5,7 @@ import UIKit
 @available(iOS 15.0, *)
 public final class MMarkMermaidAttachment: MMarkBaseAttachment {
 
-    public var model: MMarkMermaidModel {
-        guard let model = contentModel as? MMarkMermaidModel else {
-            fatalError("MMarkMermaidAttachment contentModel is not MMarkMermaidModel")
-        }
-        return model
-    }
+    public var model: MMarkMermaidModel { model(as: MMarkMermaidModel.self) }
 
     /// 保存渲染时使用的配置，供 ViewProvider 使用
     public let configuration: MMarkStyleConfiguration
@@ -22,11 +17,5 @@ public final class MMarkMermaidAttachment: MMarkBaseAttachment {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    public override func attachmentBounds(for textContainer: NSTextContainer?, proposedLineFragment lineFrag: CGRect, glyphPosition position: CGPoint, characterIndex charIndex: Int) -> CGRect {
-        let width = max(44, min(model.size.width, lineFrag.width) - 1)
-        let height = model.size.height
-        return CGRect(origin: .zero, size: CGSize(width: width, height: height))
     }
 }

@@ -36,15 +36,8 @@ public final class MMarkFontLoader: @unchecked Sendable {
             return
         }
 
-        var successCount = 0
-        var failedFonts: [String] = []
-
         for fontName in fontFileNames {
-            if registerFont(named: fontName, in: resourceBundle) {
-                successCount += 1
-            } else {
-                failedFonts.append(fontName)
-            }
+            _ = registerFont(named: fontName, in: resourceBundle)
         }
 
         isRegistered = true

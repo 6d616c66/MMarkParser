@@ -201,6 +201,10 @@ public final class MMarkCodeBlockView: UIView {
 
     // MARK: - Layout
 
+    public override var intrinsicContentSize: CGSize {
+        return CGSize(width: frame.width, height: frame.height)
+    }
+
     @objc private func copyCode() {
         UIPasteboard.general.string = code
     }

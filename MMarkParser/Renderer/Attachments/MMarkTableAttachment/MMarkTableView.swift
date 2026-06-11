@@ -147,6 +147,10 @@ public final class MMarkTableView: UIView {
         collectionView.frame = bounds
     }
 
+    public override var intrinsicContentSize: CGSize {
+        return CGSize(width: frame.width, height: frame.height)
+    }
+
     func setColumnWidths(_ widths: [CGFloat], rowHeights heights: [CGFloat]) {
         columnWidths = widths
         rowHeights = heights

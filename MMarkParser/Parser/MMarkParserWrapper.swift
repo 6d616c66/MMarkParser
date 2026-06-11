@@ -91,6 +91,15 @@ private final class _MD4CHandler {
     /// Minimum viable container width to prevent negative sizing from deep nesting.
     private var effectiveWidth: CGFloat { max(44, containerWidth) }
 
+    // MARK: Layout Constants
+
+    /// 引用条和文本之间的间距
+    private static let blockquoteBarSpacing: CGFloat = 8
+    /// 列表每级缩进量
+    private static let listIndentPerLevel: CGFloat = 8
+    /// 列表基础缩进量
+    private static let listBaseIndent: CGFloat = 8
+
     // MARK: Init
 
     init(configuration: MMarkStyleConfiguration, containerWidth: CGFloat) {
@@ -129,6 +138,51 @@ private final class _MD4CHandler {
         output(attrStr)
     }
 
+    /// 给 attachment 添加缩进（headIndent）和 blockquote 属性
+    private func applyAttachmentAttributes(_ attrStr: NSMutableAttributedString) {
+        if currentHeadIndent > 0 {
+            let ps = NSMutableParagraphStyle()
+            ps.firstLineHeadIndent = currentHeadIndent
+            ps.headIndent = currentHeadIndent
+            attrStr.addAttribute(.paragraphStyle, value: ps, range: NSRange(location: 0, length: attrStr.length))
+        }
+        if isInsideBlockquote {
+            attrStr.addAttribute(.blockquote, value: true, range: NSRange(location: 0, length: attrStr.length))
+            attrStr.addAttribute(.blockquoteDepth, value: blockquoteDepth, range: NSRange(location: 0, length: attrStr.length))
+            attrStr.addAttribute(.backgroundColor, value: configuration.blockquoteBackgroundColor, range: NSRange(location: 0, length: attrStr.length))
+        }
+    }
+
+    // MARK: - List Marker Helpers
+
+    /// 渲染列表标记符号（character 或 image 模式），返回 (attributedString, measuredWidth)
+    private func renderListMarker(
+        marker: String,
+        mode: ListMarkerMode,
+        characterFont: UIFont,
+        characterColor: UIColor,
+        image: UIImage?,
+        imageSize: CGSize
+    ) -> (markerAttrStr: NSAttributedString, measuredWidth: CGFloat) {
+        switch mode {
+        case .character:
+            let str = NSAttributedString(string: marker + " ", attributes: [.font: characterFont, .foregroundColor: characterColor])
+            return (str, measureWidth(of: str))
+        case .image:
+            if let img = image {
+                let bounds = CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height)
+                let model = MMarkListMarkerModel(image: img, bounds: bounds)
+                let attachment = MMarkListMarkerAttachment(attachmentType: .listMarker, content: model)
+                let str = NSMutableAttributedString(attachment: attachment)
+                str.append(NSAttributedString(string: " "))
+                return (str, imageSize.width + 4)
+            } else {
+                let str = NSAttributedString(string: marker + " ", attributes: [.font: characterFont, .foregroundColor: characterColor])
+                return (str, measureWidth(of: str))
+            }
+        }
+    }
+
     // MARK: - Block Handlers
 
     func enterBlock(_ type: MD_BLOCKTYPE, detail: UnsafeMutableRawPointer?) {
@@ -143,7 +197,7 @@ private final class _MD4CHandler {
             // 引用块缩进 = 引用条宽度 + 间距
             // 确保引用条和文本之间有足够的空间
             let borderWidth = configuration.blockquoteBorderWidth
-            let spacing: CGFloat = 8.0 // 引用条和文本之间的间距
+            let spacing: CGFloat = Self.blockquoteBarSpacing // 引用条和文本之间的间距
             let indent: CGFloat = borderWidth + spacing
             currentIndent += indent
             currentHeadIndent += indent
@@ -213,88 +267,48 @@ private final class _MD4CHandler {
             }
 
             // Build marker attributed string with list-specific style
-            let markerAttrStr: NSAttributedString
-            let measuredWidth: CGFloat
+            let markerResult: (markerAttrStr: NSAttributedString, measuredWidth: CGFloat)
 
             if isOrdered {
                 let style = configuration.orderedListStyle
-                switch style.mode {
-                case .character:
-                    let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
-                    markerAttrStr = str
-                    measuredWidth = measureWidth(of: str)
-                case .image:
-                    if let img = style.image {
-                        let markerSize = style.imageSize
-                        let bounds = CGRect(x: 0, y: 0, width: markerSize.width, height: markerSize.height)
-                        let model = MMarkListMarkerModel(image: img, bounds: bounds)
-                        let attachment = MMarkListMarkerAttachment(attachmentType: .listMarker, content: model)
-                        let str = NSMutableAttributedString(attachment: attachment)
-                        str.append(NSAttributedString(string: " "))
-                        markerAttrStr = str
-                        measuredWidth = markerSize.width + 4
-                    } else {
-                        let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
-                        markerAttrStr = str
-                        measuredWidth = measureWidth(of: str)
-                    }
-                }
+                markerResult = renderListMarker(
+                    marker: marker,
+                    mode: style.mode,
+                    characterFont: style.font,
+                    characterColor: style.textColor,
+                    image: style.image,
+                    imageSize: style.imageSize
+                )
             } else if isTask {
                 let style = configuration.taskListStyle
                 let isChecked = taskMark == 120
-                let markerFont = isChecked ? style.checkedFont : style.uncheckedFont
-                let markerColor = isChecked ? style.checkedColor : style.uncheckedColor
-                switch style.mode {
-                case .character:
-                    let str = NSAttributedString(string: marker + " ", attributes: [.font: markerFont, .foregroundColor: markerColor])
-                    markerAttrStr = str
-                    measuredWidth = measureWidth(of: str)
-                case .image:
-                    let img = isChecked ? style.checkedImage : style.uncheckedImage
-                    if let img = img {
-                        let markerSize = style.imageSize
-                        let bounds = CGRect(x: 0, y: 0, width: markerSize.width, height: markerSize.height)
-                        let model = MMarkListMarkerModel(image: img, bounds: bounds)
-                        let attachment = MMarkListMarkerAttachment(attachmentType: .listMarker, content: model)
-                        let str = NSMutableAttributedString(attachment: attachment)
-                        str.append(NSAttributedString(string: " "))
-                        markerAttrStr = str
-                        measuredWidth = markerSize.width + 4
-                    } else {
-                        let str = NSAttributedString(string: marker + " ", attributes: [.font: markerFont, .foregroundColor: markerColor])
-                        markerAttrStr = str
-                        measuredWidth = measureWidth(of: str)
-                    }
-                }
+                markerResult = renderListMarker(
+                    marker: marker,
+                    mode: style.mode,
+                    characterFont: isChecked ? style.checkedFont : style.uncheckedFont,
+                    characterColor: isChecked ? style.checkedColor : style.uncheckedColor,
+                    image: isChecked ? style.checkedImage : style.uncheckedImage,
+                    imageSize: style.imageSize
+                )
             } else {
                 let style = configuration.unorderedListStyle
-                switch style.mode {
-                case .character:
-                    let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
-                    markerAttrStr = str
-                    measuredWidth = measureWidth(of: str)
-                case .image:
-                    let ulImg = (clampedDepth == 1) ? (style.image ?? style.secondaryImage) : (style.secondaryImage ?? style.image)
-                    if let img = ulImg {
-                        let markerSize = style.imageSize
-                        let bounds = CGRect(x: 0, y: 0, width: markerSize.width, height: markerSize.height)
-                        let model = MMarkListMarkerModel(image: img, bounds: bounds)
-                        let attachment = MMarkListMarkerAttachment(attachmentType: .listMarker, content: model)
-                        let str = NSMutableAttributedString(attachment: attachment)
-                        str.append(NSAttributedString(string: " "))
-                        markerAttrStr = str
-                        measuredWidth = markerSize.width + 4
-                    } else {
-                        let str = NSAttributedString(string: marker + " ", attributes: [.font: style.font, .foregroundColor: style.textColor])
-                        markerAttrStr = str
-                        measuredWidth = measureWidth(of: str)
-                    }
-                }
+                let ulImg = (clampedDepth == 1) ? (style.image ?? style.secondaryImage) : (style.secondaryImage ?? style.image)
+                markerResult = renderListMarker(
+                    marker: marker,
+                    mode: style.mode,
+                    characterFont: style.font,
+                    characterColor: style.textColor,
+                    image: ulImg,
+                    imageSize: style.imageSize
+                )
             }
 
+            let markerAttrStr = markerResult.markerAttrStr
+            let measuredWidth = markerResult.measuredWidth
+
             // Calculate indentation using measured marker width
-            let indentPerLevel: CGFloat = 8.0
-            let baseIndent: CGFloat = 8.0
+            let indentPerLevel: CGFloat = Self.listIndentPerLevel
+            let baseIndent: CGFloat = Self.listBaseIndent
             let itemIndent = CGFloat(clampedDepth - 1) * indentPerLevel + baseIndent
             let markerWidth = max(measuredWidth, 8)
 
@@ -491,7 +505,7 @@ private final class _MD4CHandler {
             isInsideBlockquote = blockquoteDepth > 1
             blockquoteDepth -= 1
             let borderWidth = configuration.blockquoteBorderWidth
-            let spacing: CGFloat = 8.0
+            let spacing: CGFloat = Self.blockquoteBarSpacing
             let indent: CGFloat = borderWidth + spacing
             currentIndent -= indent
             currentHeadIndent -= indent
@@ -576,17 +590,7 @@ private final class _MD4CHandler {
                     attrStr = NSMutableAttributedString(attachment: attachment)
                 }
 
-                if currentHeadIndent > 0 {
-                    let ps = NSMutableParagraphStyle()
-                    ps.firstLineHeadIndent = currentHeadIndent
-                    ps.headIndent = currentHeadIndent
-                    attrStr.addAttribute(.paragraphStyle, value: ps, range: NSRange(location: 0, length: attrStr.length))
-                }
-                if isInsideBlockquote {
-                    attrStr.addAttribute(.blockquote, value: true, range: NSRange(location: 0, length: attrStr.length))
-                    attrStr.addAttribute(.blockquoteDepth, value: blockquoteDepth, range: NSRange(location: 0, length: attrStr.length))
-                    attrStr.addAttribute(.backgroundColor, value: configuration.blockquoteBackgroundColor, range: NSRange(location: 0, length: attrStr.length))
-                }
+                applyAttachmentAttributes(attrStr)
 
                 result.append(attrStr)
                 result.append(NSAttributedString(string: "\n"))
@@ -611,17 +615,7 @@ private final class _MD4CHandler {
                 let attachment = MMarkTableAttachment(attachmentType: .table, content: model)
                 let attrStr = NSMutableAttributedString(attachment: attachment)
 
-                if currentHeadIndent > 0 {
-                    let ps = NSMutableParagraphStyle()
-                    ps.firstLineHeadIndent = currentHeadIndent
-                    ps.headIndent = currentHeadIndent
-                    attrStr.addAttribute(.paragraphStyle, value: ps, range: NSRange(location: 0, length: attrStr.length))
-                }
-                if isInsideBlockquote {
-                    attrStr.addAttribute(.blockquote, value: true, range: NSRange(location: 0, length: attrStr.length))
-                    attrStr.addAttribute(.blockquoteDepth, value: blockquoteDepth, range: NSRange(location: 0, length: attrStr.length))
-                    attrStr.addAttribute(.backgroundColor, value: configuration.blockquoteBackgroundColor, range: NSRange(location: 0, length: attrStr.length))
-                }
+                applyAttachmentAttributes(attrStr)
 
                 result.append(attrStr)
                 result.append(NSAttributedString(string: "\n"))
@@ -803,17 +797,7 @@ private final class _MD4CHandler {
                     result.append(NSAttributedString(string: "\n"))
                 }
                 // HeadIndent paragraph style for block-level images in lists/blockquotes
-                if currentHeadIndent > 0 {
-                    let ps = NSMutableParagraphStyle()
-                    ps.firstLineHeadIndent = currentHeadIndent
-                    ps.headIndent = currentHeadIndent
-                    attrStr.addAttribute(.paragraphStyle, value: ps, range: NSRange(location: 0, length: attrStr.length))
-                }
-                if isInsideBlockquote {
-                    attrStr.addAttribute(.blockquote, value: true, range: NSRange(location: 0, length: attrStr.length))
-                    attrStr.addAttribute(.blockquoteDepth, value: blockquoteDepth, range: NSRange(location: 0, length: attrStr.length))
-                    attrStr.addAttribute(.backgroundColor, value: configuration.blockquoteBackgroundColor, range: NSRange(location: 0, length: attrStr.length))
-                }
+                applyAttachmentAttributes(attrStr)
                 result.append(attrStr)
                 result.append(NSAttributedString(string: "\n"))
             }
